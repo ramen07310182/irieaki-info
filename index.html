@@ -54,17 +54,104 @@
             font-size: 14px;
         }
 
+        /*
+         * =====================================================
+         * sourceごとのセクション
+         * =====================================================
+         */
+
+        .source-section {
+            margin-bottom: 12px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+        }
+
+        /*
+         * =====================================================
+         * source見出し
+         * =====================================================
+         */
+
+        .source-header {
+            width: 100%;
+            border: none;
+            background: white;
+            padding: 16px 18px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            cursor: pointer;
+
+            color: #333;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        .source-header:active {
+            background: #f5f5f5;
+        }
+
+        /*
+         * 矢印
+         */
+
+        .source-arrow {
+            font-size: 16px;
+            color: #777;
+
+            transition:
+                transform 0.2s ease;
+        }
+
+        /*
+         * 展開時に矢印を回転
+         */
+
+        .source-section.open .source-arrow {
+            transform: rotate(90deg);
+        }
+
+        /*
+         * =====================================================
+         * ニュース一覧
+         * =====================================================
+         */
+
+        .source-content {
+            display: none;
+            padding: 0 12px 12px;
+        }
+
+        /*
+         * sourceが開いている場合
+         */
+
+        .source-section.open .source-content {
+            display: block;
+        }
+
         .news-list {
             display: flex;
             flex-direction: column;
             gap: 12px;
         }
 
+        /*
+         * =====================================================
+         * ニュースカード
+         * =====================================================
+         */
+
         .news-item {
-            background: white;
-            border-radius: 12px;
+            background: #f9f9f9;
+            border-radius: 10px;
             padding: 18px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border: 1px solid #eee;
         }
 
         .news-date {
@@ -104,6 +191,12 @@
             opacity: 0.7;
         }
 
+        /*
+         * =====================================================
+         * ステータス
+         * =====================================================
+         */
+
         .status {
             background: white;
             border-radius: 12px;
@@ -116,8 +209,14 @@
             color: #c00;
         }
 
+        /*
+         * =====================================================
+         * 最終更新
+         * =====================================================
+         */
+
         .updated {
-            margin-top: 12px;
+            margin-top: 20px;
             text-align: center;
             color: #888;
             font-size: 12px;
@@ -125,23 +224,40 @@
     </style>
 </head>
 
+
 <body>
 
     <div class="container">
 
+        <!-- =================================================
+             ヘッダー
+        ================================================== -->
+
         <header>
-            <h1>入江亜季 情報まとめ</h1>
+
+            <h1>
+                入江亜季 情報まとめ
+            </h1>
+
             <p class="description">
                 入江亜季さんに関する最新情報
             </p>
+
         </header>
+
+
+        <!-- =================================================
+             ニュース表示
+        ================================================== -->
 
         <main>
 
-            <div id="news-list" class="news-list">
+            <div id="news-list">
+
                 <div class="status">
                     ニュースを読み込んでいます...
                 </div>
+
             </div>
 
             <div id="updated" class="updated"></div>
@@ -153,10 +269,17 @@
 
     <script>
 
+        // ====================================================
+        // ニュース読み込み
+        // ====================================================
+
         async function loadNews() {
 
-            const newsList = document.getElementById("news-list");
-            const updated = document.getElementById("updated");
+            const newsList =
+                document.getElementById("news-list");
+
+            const updated =
+                document.getElementById("updated");
 
             try {
 
@@ -167,24 +290,47 @@
                  *
                  * を読み込む
                  *
-                 * ?timestamp=... を付けることで、
-                 * ブラウザに古いJSONが残るのを防ぐ。
+                 * timestampを付けて
+                 * キャッシュを防止
                  */
+
                 const response = await fetch(
                     "data/news.json?timestamp=" + Date.now()
                 );
 
+
+                // =================================================
+                // HTTPエラー
+                // =================================================
+
                 if (!response.ok) {
+
                     throw new Error(
                         "news.jsonを読み込めませんでした。"
                     );
                 }
 
-                const news = await response.json();
+
+                // =================================================
+                // JSON読み込み
+                // =================================================
+
+                const news =
+                    await response.json();
+
 
                 newsList.innerHTML = "";
 
-                if (!Array.isArray(news) || news.length === 0) {
+
+                // =================================================
+                // データ確認
+                // =================================================
+
+                if (
+                    !Array.isArray(news)
+                    ||
+                    news.length === 0
+                ) {
 
                     newsList.innerHTML = `
                         <div class="status">
@@ -195,100 +341,343 @@
                     return;
                 }
 
-                /*
-                 * 日付の新しい順に並べる
-                 */
+
+                // =================================================
+                // 日付の新しい順に並べる
+                // =================================================
+
                 news.sort(
                     (a, b) =>
-                        new Date(b.date) - new Date(a.date)
+                        new Date(b.date) -
+                        new Date(a.date)
                 );
 
-                /*
-                 * ニュースを表示
-                 */
+
+                // =================================================
+                // sourceごとにグループ化
+                // =================================================
+
+                const groupedNews = {};
+
+
                 for (const item of news) {
 
-                    const article = document.createElement("article");
+                    /*
+                     * sourceがないデータは
+                     * 「その他」として扱う
+                     */
 
-                    article.className = "news-item";
+                    const source =
+                        item.source || "その他";
 
-                    article.innerHTML = `
-                        <div class="news-date">
-                            ${escapeHtml(item.date)}
-                        </div>
 
-                        <h2 class="news-title">
-                            ${escapeHtml(item.title)}
-                        </h2>
+                    if (!groupedNews[source]) {
 
-                        <div class="news-source">
-                            ${escapeHtml(item.source)}
-                        </div>
+                        groupedNews[source] = [];
 
-                        <a
-                            class="news-link"
-                            href="${escapeAttribute(item.url)}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            元記事を見る
-                        </a>
-                    `;
+                    }
 
-                    newsList.appendChild(article);
+
+                    groupedNews[source].push(
+                        item
+                    );
+
                 }
 
-                /*
-                 * 最終更新日時
-                 */
-                const now = new Date();
+
+                // =================================================
+                // sourceごとに表示
+                // =================================================
+
+                for (
+                    const [source, items]
+                    of Object.entries(groupedNews)
+                ) {
+
+                    // =================================================
+                    // sourceセクション
+                    // =================================================
+
+                    const section =
+                        document.createElement(
+                            "section"
+                        );
+
+                    section.className =
+                        "source-section";
+
+
+                    // =================================================
+                    // sourceヘッダー
+                    // =================================================
+
+                    const header =
+                        document.createElement(
+                            "button"
+                        );
+
+                    header.className =
+                        "source-header";
+
+                    header.type =
+                        "button";
+
+
+                    // =================================================
+                    // source名
+                    // =================================================
+
+                    const sourceName =
+                        document.createElement(
+                            "span"
+                        );
+
+                    sourceName.textContent =
+                        source;
+
+
+                    // =================================================
+                    // 矢印
+                    // =================================================
+
+                    const arrow =
+                        document.createElement(
+                            "span"
+                        );
+
+                    arrow.className =
+                        "source-arrow";
+
+                    arrow.textContent =
+                        "▶";
+
+
+                    header.appendChild(
+                        sourceName
+                    );
+
+                    header.appendChild(
+                        arrow
+                    );
+
+
+                    // =================================================
+                    // ヘッダークリック
+                    // =================================================
+
+                    header.addEventListener(
+                        "click",
+                        () => {
+
+                            section.classList.toggle(
+                                "open"
+                            );
+
+                        }
+                    );
+
+
+                    // =================================================
+                    // コンテンツ
+                    // =================================================
+
+                    const content =
+                        document.createElement(
+                            "div"
+                        );
+
+                    content.className =
+                        "source-content";
+
+
+                    // =================================================
+                    // ニュース一覧
+                    // =================================================
+
+                    const newsContainer =
+                        document.createElement(
+                            "div"
+                        );
+
+                    newsContainer.className =
+                        "news-list";
+
+
+                    // =================================================
+                    // 各ニュース
+                    // =================================================
+
+                    for (
+                        const item
+                        of items
+                    ) {
+
+                        const article =
+                            document.createElement(
+                                "article"
+                            );
+
+                        article.className =
+                            "news-item";
+
+
+                        article.innerHTML = `
+
+                            <div class="news-date">
+                                ${escapeHtml(
+                            item.date
+                        )}
+                            </div>
+
+                            <h2 class="news-title">
+                                ${escapeHtml(
+                            item.title
+                        )}
+                            </h2>
+
+                            <div class="news-source">
+                                ${escapeHtml(
+                            item.source
+                        )}
+                            </div>
+
+                            <a
+                                class="news-link"
+                                href="${escapeAttribute(
+                            item.url
+                        )}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                元記事を見る
+                            </a>
+
+                        `;
+
+
+                        newsContainer.appendChild(
+                            article
+                        );
+
+                    }
+
+
+                    // =================================================
+                    // コンテンツに追加
+                    // =================================================
+
+                    content.appendChild(
+                        newsContainer
+                    );
+
+
+                    // =================================================
+                    // セクションに追加
+                    // =================================================
+
+                    section.appendChild(
+                        header
+                    );
+
+                    section.appendChild(
+                        content
+                    );
+
+
+                    // =================================================
+                    // ページに追加
+                    // =================================================
+
+                    newsList.appendChild(
+                        section
+                    );
+
+                }
+
+
+                // =================================================
+                // ページ確認時刻
+                // =================================================
+
+                const now =
+                    new Date();
+
 
                 updated.textContent =
                     "ページ確認時刻: " +
-                    now.toLocaleString("ja-JP");
+                    now.toLocaleString(
+                        "ja-JP"
+                    );
+
 
             } catch (error) {
 
                 console.error(error);
+
 
                 newsList.innerHTML = `
                     <div class="status error">
                         ニュースの読み込みに失敗しました。
                     </div>
                 `;
+
             }
+
         }
 
 
-        /*
-         * HTML特殊文字を安全に表示する
-         */
+        // ====================================================
+        // HTML特殊文字を安全に表示
+        // ====================================================
+
         function escapeHtml(value) {
 
-            const div = document.createElement("div");
+            const div =
+                document.createElement(
+                    "div"
+                );
 
-            div.textContent = value ?? "";
+            div.textContent =
+                value ?? "";
 
             return div.innerHTML;
+
         }
 
 
-        /*
-         * URL属性用の文字列を安全にする
-         */
+        // ====================================================
+        // URL属性用の文字列を安全にする
+        // ====================================================
+
         function escapeAttribute(value) {
 
-            return String(value ?? "")
-                .replace(/&/g, "&amp;")
-                .replace(/"/g, "&quot;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;");
+            return String(
+                value ?? ""
+            )
+                .replace(
+                    /&/g,
+                    "&amp;"
+                )
+                .replace(
+                    /"/g,
+                    "&quot;"
+                )
+                .replace(
+                    /</g,
+                    "&lt;"
+                )
+                .replace(
+                    />/g,
+                    "&gt;"
+                );
+
         }
 
 
-        /*
-         * ページを開いたときにニュースを取得
-         */
+        // ====================================================
+        // ページを開いたときにニュースを取得
+        // ====================================================
+
         loadNews();
 
     </script>

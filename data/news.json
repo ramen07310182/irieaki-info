@@ -1,9 +1,534 @@
 [
   {
+    "date": "2026-05-11",
+    "title": "～5月17日】週間マンガ単行本売り上げランキング コミックナタリーより、2026年5月11日～5月17日までの週間マンガ単行本売り上げランキングをお知らせいたします。 27 5月19日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/672529"
+  },
+  {
+    "date": "2026-05-04",
+    "title": "～5月10日】週間マンガ単行本売り上げランキング コミックナタリーより、2026年5月4日～5月10日までの週間マンガ単行本売り上げランキングをお知らせいたします。 219 5月12日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/671565"
+  },
+  {
+    "date": "2026-04-30",
+    "title": "内容紹介",
+    "source": "雪割草",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://www.bookcellar.jp/product/detail/1906547",
+    "isbn": "9784911278024",
+    "price": "1200"
+  },
+  {
+    "date": "2026-04-29",
+    "title": "『北北西に曇と往け』TVアニメ化決定！ 入江亜季先生よりアニメ化記念イラスト＆コメントが到着",
+    "source": "アニメイトタイムズ",
+    "category": "ニュース",
+    "author": "入江亜季",
+    "url": "https://www.animatetimes.com/news/details.php?id=1777382852",
+    "keyword": "入江亜季, 北北西に曇と往け"
+  },
+  {
     "date": "2026-04-28",
     "title": "『北北西に曇と往け』TVアニメ化決定！入江亜季先生よりアニメ化記念イラスト＆コメント到着",
     "source": "北北西に曇と往け公式",
     "category": "公式ニュース",
     "url": "https://hokuhokusei-pr.com/118/"
+  },
+  {
+    "date": "2025-10-27",
+    "title": "森薫が近況報告 森薫の「近況おしらせいろいろマンガ!!」が公開された。その“おしらせ”によると、雪割草というマンガ専門の新出版社が立ち上がり、森のマンガは今後そこから発売される。 34019 2025年10月27日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/645772"
+  },
+  {
+    "date": "2025-07-29",
+    "title": "「森薫と入江亜季 展」のグッズが買えるPOP UPショップ、ところざわサクラタウンで 「漫画家・森薫と入江亜季 展 ―ペン先が描く緻密なる世界―」の一部グッズが、埼玉・ところざわサクラタウン内のダ・ヴィンチストアに登場。「SHOP マメたん・プリン君」と題した期間限定のPOP UPショップとして、8月1日から9月30日まで展開される。 67 2025年7月29日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/634057"
+  },
+  {
+    "date": "2025-02-24",
+    "title": "森薫と入江亜季が合同展　世田谷文学館で11月から 森薫と入江亜季の合同展示が、11月2日から2025年2月24日にかけて、東京・世田谷文学館で開催されると告知された。 4215 2024年2月21日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/561938"
+  },
+  {
+    "date": "2025-02-20",
+    "title": "青騎士が次号からリニューアル　森薫、入江亜季は同誌を離れて別の発表形態へ 青騎士（KADOKAWA）が4月発売の25号でのリニューアルを発表。「乙嫁語り」を連載していた森薫、「北北西に曇と往け」を連載していた入江亜季はリニューアル後、同誌を離れて活動する。 1253 2025年2月20日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/612395"
+  },
+  {
+    "date": "2025-02-04",
+    "title": "森薫、入江亜季、ハルタ創刊編集長がマンガ技術のすべてを詰め込んだ「マンガの原理」発売 「乙嫁語り」の森薫、「北北西に曇と往け」の入江亜季、Fellows!、ハルタ、青騎士（すべてKADOKAWA）の創刊編集長・大場渉氏がマンガ技術を解説する書籍「マンガの原理」が、本日2月4日にKADOKAWAから刊行された。 889 2025年2月4日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/610313"
+  },
+  {
+    "date": "2025-02-04",
+    "title": "森薫と入江亜季、その担当編集者がマンガの体系的な理論と技術を公開「マンガの原理」 マンガの体系的な理論と技術を紹介する本「マンガの原理」が、2025年2月4日にKADOKAWAより発売される。著者はハルタ・青騎士（ともにKADOKAWA）の創刊編集長・大場渉と、「乙嫁語り」の森薫と「北北西に曇と往け」の入江亜季。 325 2024年12月17日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/604071"
+  },
+  {
+    "date": "2024-11-05",
+    "title": "森薫と入江亜季の対談イベント　世田谷文学館で開催中の合同展に関連して 企画展「漫画家・森薫と入江亜季 展 ―ペン先が描く緻密なる世界―」が東京・世田谷文学館で開催中。これに関連して、同会場で11月30日に森薫と入江亜季の対談イベントが行われる。 205 2024年11月5日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/598128"
+  },
+  {
+    "date": "2024-11-02",
+    "title": "「森薫と入江亜季 展」開幕！マンガ原稿、机周り…600点超の資料で2人の軌跡をたどる 企画展「漫画家・森薫と入江亜季 展 ―ペン先が描く緻密なる世界―」が、本日11月2日に東京・世田谷文学館でスタートした。 284 2024年11月2日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/597837"
+  },
+  {
+    "date": "2024-09-13",
+    "title": "「森薫と入江亜季 展」キービジュアル公開、アナログにこだわり続ける2人に迫る 森薫と入江亜季の合同展「漫画家・森薫と入江亜季 展 ー緻密なるペンが描く世界ー」のキービジュアル、展示内容が発表された。 5583 2024年9月13日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/590827"
+  },
+  {
+    "date": "2024-05-20",
+    "title": "【5月20日付】本日発売の単行本リスト コミックナタリーより、本日5月20日に発売される単行本をお知らせいたします。本日発売の雑誌リストはこちらから。 49 2024年5月20日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/571520"
+  },
+  {
+    "date": "2024-05-20",
+    "title": "北北西に曇と往け＜ワイド版＞ 7",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g322401000802",
+    "isbn": "9784047379596",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2024-02-27",
+    "title": "【2月19日～2月25日】週間単行本売り上げランキング コミックナタリーより、2月19日～2月25日までの週間単行本売り上げランキングをお知らせいたします。 19 2024年2月27日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/562738"
+  },
+  {
+    "date": "2024-02-20",
+    "title": "【2月20日付】本日発売の単行本リスト コミックナタリーより、本日2月20日に発売される単行本をお知らせいたします。本日発売の雑誌リストはこちらから。 30 2024年2月20日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/560131"
+  },
+  {
+    "date": "2024-02-20",
+    "title": "北北西に曇と往け ７",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g322311001244",
+    "isbn": "9784047378674",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2023-01-20",
+    "title": "【1月20日付】本日発売の単行本リスト コミックナタリーより、本日1月20日に発売される単行本をお知らせいたします。本日発売の雑誌リストはこちらから。 66 2023年1月20日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/509259"
+  },
+  {
+    "date": "2023-01-20",
+    "title": "北北西に曇と往け＜ワイド版＞ 6",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g322209001563",
+    "isbn": "9784047373358",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2022-11-18",
+    "title": "【11月18日付】本日発売の単行本リスト コミックナタリーより、本日11月18日に発売される単行本をお知らせいたします。本日発売の雑誌リストはこちらから。 50 2022年11月18日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/501204"
+  },
+  {
+    "date": "2022-11-18",
+    "title": "北北西に曇と往け ６",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g322206001059",
+    "isbn": "9784047372320",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2022-03-19",
+    "title": "入江亜季による約16年ぶりの作品集「旅」、連載誌と同サイズのワイド版も登場 入江亜季の作品集「旅」が、本日3月19日に発売された。B6版に加え、連載誌と同じサイズのワイド版も展開されている。 1382 2022年3月19日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/470354"
+  },
+  {
+    "date": "2022-03-19",
+    "title": "【3月19日付】本日発売の単行本リスト コミックナタリーより、本日3月19日に発売される単行本をお知らせいたします。本日発売の雑誌リストはこちらから。 44 2022年3月19日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/470072"
+  },
+  {
+    "date": "2022-03-19",
+    "title": "旅",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g321706000807",
+    "isbn": "9784047348325",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2022-03-19",
+    "title": "旅 ワイド版",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g322111000964",
+    "isbn": "9784047369573",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2022-02-10",
+    "title": "「大乙嫁語り展」グッズ情報解禁！森薫のサイン会、入江亜季とのトークショーも 森薫「乙嫁語り」の原画展「大乙嫁語り展」で販売される、開催記念グッズが公開された。 520 2022年2月10日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/465148"
+  },
+  {
+    "date": "2021-12-20",
+    "title": "「もっけ」の熊倉隆敏、ガール・ミーツ・ワンダーランドな新連載を青騎士5Aで 「もっけ」「ネクログ」などで知られる熊倉隆敏の新連載「つらねこ」が、本日12月20日発売の青騎士第5A号（KADOKAWA）でスタートした。 383 2021年12月20日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/458534"
+  },
+  {
+    "date": "2021-11-20",
+    "title": "【11月20日付】本日発売の単行本リスト コミックナタリーより、本日11月20日に発売される単行本をお知らせいたします。本日発売の雑誌リストはこちらから。 26 2021年11月20日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/454141"
+  },
+  {
+    "date": "2021-11-20",
+    "title": "北北西に曇と往け＜ワイド版＞ 5",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g322101000385",
+    "isbn": "9784047365940",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2021-10-27",
+    "title": "森薫、こかむもら青騎士作家24人の描き下ろし収録した小冊子がマオウ付録に 本日10月27日発売の電撃マオウ12月号（KADOKAWA）には、付録として小冊子「青騎士カタローク」が用意された。 307 2021年10月27日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/451043"
+  },
+  {
+    "date": "2021-10-20",
+    "title": "【10月20日付】本日発売の単行本リスト コミックナタリーより、本日10月20日に発売される単行本をお知らせいたします。本日発売の雑誌リストはこちらから。 41 2021年10月20日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/449908"
+  },
+  {
+    "date": "2021-10-20",
+    "title": "北北西に曇と往け＜ワイド版＞ 4",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g322101000384",
+    "isbn": "9784047365933",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2021-09-18",
+    "title": "【9月18日付】本日発売の単行本リスト コミックナタリーより、本日9月18日に発売される単行本をお知らせいたします。本日発売の雑誌リストはこちらから。 32 2021年9月18日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/445575"
+  },
+  {
+    "date": "2021-09-18",
+    "title": "北北西に曇と往け＜ワイド版＞ 3",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g322101000383",
+    "isbn": "9784047365926",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2021-08-20",
+    "title": "【8月20日付】本日発売の単行本リスト コミックナタリーより、本日8月20日に発売される単行本をお知らせいたします。本日発売の雑誌リストはこちらから。 29 2021年8月20日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/441476"
+  },
+  {
+    "date": "2021-08-20",
+    "title": "北北西に曇と往け＜ワイド版＞ 2",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g322101000382",
+    "isbn": "9784047365919",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2021-07-20",
+    "title": "「北北西に曇と往け」入江亜季のペンタッチを堪能できるワイド版登場、描き下ろしも 入江亜季「北北西に曇と往け」のワイド版1巻が、本日7月20日に発売された。 1359 2021年7月20日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/437659"
+  },
+  {
+    "date": "2021-07-20",
+    "title": "【7月20日付】本日発売の単行本リスト コミックナタリーより、本日7月20日に発売される単行本をお知らせいたします。本日発売の雑誌リストはこちらから。 51 2021年7月20日 コミック",
+    "source": "コミックナタリー",
+    "category": "ニュース",
+    "url": "https://natalie.mu/comic/news/437451"
+  },
+  {
+    "date": "2021-07-20",
+    "title": "北北西に曇と往け＜ワイド版＞ 1",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g322101000381",
+    "isbn": "9784047365902",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2021-04-06",
+    "title": "全国のアニメイトで新マンガ誌『青騎士』創刊記念「KADOKAWAと青騎士展」開催決定！ 森薫先生の『乙嫁語り』、入江亜季先生の『北北西に曇と往け』ほかの複製原画を展示＆プレゼント",
+    "source": "アニメイトタイムズ",
+    "category": "ニュース",
+    "author": "入江亜季",
+    "url": "https://www.animatetimes.com/news/details.php?id=1616392381",
+    "keyword": "入江亜季, 北北西に曇と往け"
+  },
+  {
+    "date": "2021-01-15",
+    "title": "北北西に曇と往け ５",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g322006000677",
+    "isbn": "9784047362635",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2020-01-14",
+    "title": "北北西に曇と往け ４",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g321906000751",
+    "isbn": "9784047357921",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2019-01-15",
+    "title": "北北西に曇と往け ３",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g321807000123",
+    "isbn": "9784047353459",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2018-03-15",
+    "title": "北北西に曇と往け ２",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g321711001042",
+    "isbn": "9784047350526",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2017-10-13",
+    "title": "北北西に曇と往け １",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g321706000806",
+    "isbn": "9784047348318",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2015-06-15",
+    "title": "乱と灰色の世界 ７巻",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g301503000093",
+    "isbn": "9784047305823",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2014-04-14",
+    "title": "乱と灰色の世界 ６巻",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g301402000998",
+    "isbn": "9784047295766",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2013-09-14",
+    "title": "乱と灰色の世界 ５巻",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g201302000129",
+    "isbn": "9784047291645",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2012-07-14",
+    "title": "乱と灰色の世界 ４巻",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g201202000302",
+    "isbn": "9784047281165",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2011-07-15",
+    "title": "乱と灰色の世界 ３巻",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g201103000341",
+    "isbn": "9784047273832",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2010-11-15",
+    "title": "乱と灰色の世界 ２巻",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g201008000181",
+    "isbn": "9784047268494",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2009-11-16",
+    "title": "乱と灰色の世界 １巻",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g200908000223",
+    "isbn": "9784047261457",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2009-02-14",
+    "title": "群青学舎 四巻",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g301504000664",
+    "isbn": "9784047304642",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2008-04-25",
+    "title": "群青学舎 三巻",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g301504000663",
+    "isbn": "9784047304635",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2007-06-25",
+    "title": "群青学舎 二巻",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g301504000662",
+    "isbn": "9784047304628",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2006-08-31",
+    "title": "コダマの谷 王立大学騒乱劇",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g301610000219",
+    "isbn": "9784047359000",
+    "price": "2000",
+    "product_type": "コミックス"
+  },
+  {
+    "date": "2006-08-31",
+    "title": "群青学舎 一巻",
+    "source": "KADOKAWA",
+    "category": "出版情報",
+    "author": "入江 亜季",
+    "url": "https://store.kadokawa.co.jp/shop/g/g301504000661",
+    "isbn": "9784047304611",
+    "price": "2000",
+    "product_type": "コミックス"
   }
 ]
