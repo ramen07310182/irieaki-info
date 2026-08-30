@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import time
 from datetime import datetime
 from urllib.parse import quote, urlparse
@@ -19,6 +20,15 @@ GOOGLE_NEWS_RSS_URL = (
 SEARCH_WORDS = [
     "入江亜季 site:natalie.mu/comic",
     "北北西に曇と往け site:natalie.mu/comic",
+]
+
+# ------------------------------------------------------------
+# 保存対象にするタイトルキーワード
+# ------------------------------------------------------------
+
+TITLE_KEYWORDS = [
+    "入江亜季",
+    "北北西に曇と往け",
 ]
 
 MAX_RETRIES = 3
@@ -47,8 +57,33 @@ HEADERS = {
         "(KHTML, like Gecko) "
         "Chrome/151.0.0.0 Safari/537.36"
     ),
+    "Accept": (
+        "application/rss+xml, "
+        "application/xml, "
+        "text/xml, "
+        "text/html;q=0.9, "
+        "*/*;q=0.8"
+    ),
     "Accept-Language": "ja,en-US;q=0.9,en;q=0.8",
 }
+
+
+# ============================================================
+# タイトルが保存対象か判定
+# ============================================================
+
+def is_target_title(title):
+
+    if not title:
+        return False
+
+    for keyword in TITLE_KEYWORDS:
+
+        if keyword in title:
+
+            return True
+
+    return False
 
 
 # ============================================================
@@ -57,7 +92,9 @@ HEADERS = {
 
 def get_rss(search_word):
 
-    encoded_word = quote(search_word)
+    encoded_word = quote(
+        search_word
+    )
 
     url = GOOGLE_NEWS_RSS_URL.format(
         encoded_word
@@ -105,10 +142,24 @@ def get_rss(search_word):
 
                 return response
 
-            print(
-                f"HTTPエラー: "
-                f"{response.status_code}"
-            )
+            if response.status_code == 403:
+
+                print(
+                    "403 Forbidden"
+                )
+
+            elif response.status_code == 429:
+
+                print(
+                    "429 Too Many Requests"
+                )
+
+            else:
+
+                print(
+                    f"HTTPエラー: "
+                    f"{response.status_code}"
+                )
 
             if attempt < MAX_RETRIES - 1:
 
@@ -118,7 +169,9 @@ def get_rss(search_word):
                     f"{wait_time}秒待って再試行します..."
                 )
 
-                time.sleep(wait_time)
+                time.sleep(
+                    wait_time
+                )
 
         except requests.RequestException as e:
 
@@ -134,7 +187,9 @@ def get_rss(search_word):
                     f"{wait_time}秒待って再試行します..."
                 )
 
-                time.sleep(wait_time)
+                time.sleep(
+                    wait_time
+                )
 
     return None
 
@@ -147,10 +202,12 @@ def parse_rss(response):
 
     soup = BeautifulSoup(
         response.content,
-        "xml",
+        "xml"
     )
 
-    items = soup.find_all("item")
+    items = soup.find_all(
+        "item"
+    )
 
     print()
     print(
@@ -161,12 +218,24 @@ def parse_rss(response):
 
     for item in items:
 
-        title_element = item.find("title")
-        link_element = item.find("link")
-        pub_date_element = item.find("pubDate")
-        source_element = item.find("source")
+        title_element = item.find(
+            "title"
+        )
+
+        link_element = item.find(
+            "link"
+        )
+
+        pub_date_element = item.find(
+            "pubDate"
+        )
+
+        source_element = item.find(
+            "source"
+        )
 
         if title_element is None:
+
             continue
 
         title = title_element.get_text(
@@ -176,6 +245,7 @@ def parse_rss(response):
         link = ""
 
         if link_element:
+
             link = link_element.get_text(
                 strip=True
             )
@@ -183,11 +253,13 @@ def parse_rss(response):
         pub_date = ""
 
         if pub_date_element:
+
             pub_date = pub_date_element.get_text(
                 strip=True
             )
 
         source = ""
+
         source_url = ""
 
         if source_element:
@@ -237,17 +309,20 @@ def is_natalie_source(item):
 
 
 # ============================================================
-# natalie.mu URL判定
+# コミックナタリーURL判定
 # ============================================================
 
 def is_natalie_comic_url(url):
 
     if not url:
+
         return False
 
     try:
 
-        parsed = urlparse(url)
+        parsed = urlparse(
+            url
+        )
 
         hostname = (
             parsed.hostname or ""
@@ -259,7 +334,9 @@ def is_natalie_comic_url(url):
 
         return (
             hostname == "natalie.mu"
-            and path.startswith("/comic/")
+            and path.startswith(
+                "/comic/"
+            )
         )
 
     except Exception:
@@ -268,15 +345,7 @@ def is_natalie_comic_url(url):
 
 
 # ============================================================
-# Google News URLから元記事URLを取得
-#
-# 現在のGoogle News CBMi...形式対応
-#
-# 1. Google News記事ページをGET
-# 2. c-wiz[data-p] を取得
-# 3. garturlreqデータを取り出す
-# 4. batchexecuteへFbv4jeをPOST
-# 5. garturlresから元記事URLを取得
+# Google News URLから元記事URL取得
 # ============================================================
 
 def resolve_google_news_url(
@@ -284,6 +353,7 @@ def resolve_google_news_url(
 ):
 
     if not google_news_url:
+
         return ""
 
     print()
@@ -304,7 +374,7 @@ def resolve_google_news_url(
     )
 
     # --------------------------------------------------------
-    # Google News記事ページを取得
+    # Google News記事ページ取得
     # --------------------------------------------------------
 
     try:
@@ -332,233 +402,124 @@ def resolve_google_news_url(
         return ""
 
     # --------------------------------------------------------
-    # c-wiz[data-p] を探す
+    # まずリダイレクト後URLを確認
+    # --------------------------------------------------------
+
+    final_url = response.url
+
+    if is_natalie_comic_url(
+        final_url
+    ):
+
+        print(
+            f"リダイレクト先から取得: "
+            f"{final_url}"
+        )
+
+        return final_url
+
+    # --------------------------------------------------------
+    # HTML内のナタリーURLを探す
     # --------------------------------------------------------
 
     soup = BeautifulSoup(
         response.text,
-        "html.parser",
+        "html.parser"
     )
 
-    c_wiz = soup.select_one(
-        "c-wiz[data-p]"
-    )
+    # aタグ
+    for a in soup.find_all(
+        "a",
+        href=True
+    ):
 
-    if c_wiz is None:
-
-        print(
-            "c-wiz[data-p] が見つかりません。"
+        href = a.get(
+            "href"
         )
 
-        return ""
+        if not href:
+            continue
 
-    data_p = c_wiz.get(
-        "data-p"
-    )
-
-    if not data_p:
-
-        print(
-            "data-pが空です。"
-        )
-
-        return ""
-
-    # --------------------------------------------------------
-    # data-pからgarturlreqを作成
-    # --------------------------------------------------------
-
-    try:
-
-        json_text = data_p.replace(
-            "%.@.",
-            '["garturlreq",'
-        )
-
-        obj = json.loads(
-            json_text
-        )
-
-    except Exception as e:
-
-        print(
-            f"data-p解析エラー: {e}"
-        )
-
-        return ""
-
-    # --------------------------------------------------------
-    # Google内部RPC用データ
-    #
-    # 既存のGoogle News decoder実装で使われている
-    # Fbv4je RPCを使用する
-    # --------------------------------------------------------
-
-    try:
-
-        request_data = [
-            [
-                [
-                    "Fbv4je",
-                    json.dumps(
-                        obj[:-6] + obj[-2:],
-                        separators=(
-                            ",",
-                            ":"
-                        ),
-                    ),
-                    "null",
-                    "generic",
-                ]
-            ]
-        ]
-
-        payload = {
-            "f.req": json.dumps(
-                request_data,
-                separators=(
-                    ",",
-                    ":"
-                ),
-            )
-        }
-
-    except Exception as e:
-
-        print(
-            f"RPCデータ作成エラー: {e}"
-        )
-
-        return ""
-
-    # --------------------------------------------------------
-    # batchexecute
-    # --------------------------------------------------------
-
-    batchexecute_url = (
-        "https://news.google.com/"
-        "_/DotsSplashUi/data/batchexecute"
-    )
-
-    rpc_headers = {
-        "Content-Type": (
-            "application/x-www-form-urlencoded;"
-            "charset=UTF-8"
-        ),
-        "User-Agent": HEADERS["User-Agent"],
-        "Referer": "https://news.google.com/",
-    }
-
-    try:
-
-        rpc_response = session.post(
-            batchexecute_url,
-            headers=rpc_headers,
-            data=payload,
-            timeout=30,
-        )
-
-    except requests.RequestException as e:
-
-        print(
-            f"batchexecute通信エラー: {e}"
-        )
-
-        return ""
-
-    print(
-        f"batchexecute: "
-        f"HTTP {rpc_response.status_code}"
-    )
-
-    if rpc_response.status_code != 200:
-
-        return ""
-
-    text = rpc_response.text
-
-    # --------------------------------------------------------
-    # garturlresを検索
-    # --------------------------------------------------------
-
-    marker = (
-        '[\\"garturlres\\",\\"'
-    )
-
-    start = text.find(
-        marker
-    )
-
-    if start == -1:
-
-        # 別形式
-        marker = (
-            '["garturlres","'
-        )
-
-        start = text.find(
-            marker
-        )
-
-        if start == -1:
+        if is_natalie_comic_url(
+            href
+        ):
 
             print(
-                "garturlresが見つかりません。"
+                f"aタグから取得: "
+                f"{href}"
             )
 
-            return ""
-
-    start += len(marker)
+            return href
 
     # --------------------------------------------------------
-    # URL終了位置
+    # canonical
     # --------------------------------------------------------
 
-    end = text.find(
-        '",',
-        start
+    canonical = soup.find(
+        "link",
+        rel="canonical"
     )
 
-    if end == -1:
+    if canonical:
 
-        print(
-            "garturlresの終了位置を"
-            "特定できませんでした。"
+        href = canonical.get(
+            "href",
+            ""
         )
 
-        return ""
+        if is_natalie_comic_url(
+            href
+        ):
 
-    article_url = text[
-        start:end
-    ]
+            print(
+                f"canonicalから取得: "
+                f"{href}"
+            )
+
+            return href
 
     # --------------------------------------------------------
-    # エスケープ解除
+    # og:url
     # --------------------------------------------------------
 
-    article_url = (
-        article_url
-        .replace('\\"', '"')
-        .replace("\\/", "/")
-        .replace("\\u003d", "=")
-        .replace("\\u0026", "&")
+    og_url = soup.find(
+        "meta",
+        property="og:url"
     )
+
+    if og_url:
+
+        content = og_url.get(
+            "content",
+            ""
+        )
+
+        if is_natalie_comic_url(
+            content
+        ):
+
+            print(
+                f"og:urlから取得: "
+                f"{content}"
+            )
+
+            return content
 
     print(
-        f"取得した元記事URL: "
-        f"{article_url}"
+        "元記事URLを取得できませんでした。"
     )
 
-    return article_url
+    return ""
 
 
 # ============================================================
-# RSS日時をYYYY-MM-DDへ変換
+# 日付変換
 # ============================================================
 
 def convert_date(pub_date):
 
     if not pub_date:
+
         return ""
 
     formats = [
@@ -616,7 +577,9 @@ def load_news():
             encoding="utf-8"
         ) as f:
 
-            data = json.load(f)
+            data = json.load(
+                f
+            )
 
         if not isinstance(
             data,
@@ -666,7 +629,9 @@ def save_news(news):
             indent=2
         )
 
-        f.write("\n")
+        f.write(
+            "\n"
+        )
 
 
 # ============================================================
@@ -701,7 +666,7 @@ if __name__ == "__main__":
     print("=" * 70)
     print(
         "コミックナタリー"
-        " Google News RSS取得テスト"
+        " Google News RSS取得"
     )
     print("=" * 70)
 
@@ -711,7 +676,7 @@ if __name__ == "__main__":
     )
 
     # --------------------------------------------------------
-    # news.json読み込み
+    # news.json
     # --------------------------------------------------------
 
     news = load_news()
@@ -731,16 +696,22 @@ if __name__ == "__main__":
         )
 
         if url:
-            existing_urls.add(url)
+
+            existing_urls.add(
+                url
+            )
 
     # --------------------------------------------------------
-    # RSS取得
+    # RSS検索
     # --------------------------------------------------------
 
     success_count = 0
+
     natalie_candidates = []
 
     checked_google_urls = set()
+
+    title_excluded_count = 0
 
     for search_word in SEARCH_WORDS:
 
@@ -767,14 +738,41 @@ if __name__ == "__main__":
             )
 
             # ------------------------------------------------
-            # ナタリーだけ抽出
+            # 記事を確認
             # ------------------------------------------------
 
             for item in results:
 
+                # --------------------------------------------
+                # ナタリー判定
+                # --------------------------------------------
+
                 if not is_natalie_source(
                     item
                 ):
+
+                    continue
+
+                # --------------------------------------------
+                # ★ タイトルフィルタ
+                # --------------------------------------------
+
+                if not is_target_title(
+                    item["title"]
+                ):
+
+                    title_excluded_count += 1
+
+                    print()
+                    print(
+                        "→ タイトル条件外のため除外"
+                    )
+
+                    print(
+                        f"タイトル: "
+                        f"{item['title']}"
+                    )
+
                     continue
 
                 google_url = item[
@@ -782,10 +780,15 @@ if __name__ == "__main__":
                 ]
 
                 if not google_url:
+
                     continue
 
-                # 同じGoogle News URLは1回だけ
+                # --------------------------------------------
+                # Google News URL重複
+                # --------------------------------------------
+
                 if google_url in checked_google_urls:
+
                     continue
 
                 checked_google_urls.add(
@@ -794,6 +797,16 @@ if __name__ == "__main__":
 
                 natalie_candidates.append(
                     item
+                )
+
+                print()
+                print(
+                    "★ 保存対象タイトル"
+                )
+
+                print(
+                    f"タイトル: "
+                    f"{item['title']}"
                 )
 
         except Exception as e:
@@ -809,25 +822,27 @@ if __name__ == "__main__":
 
         if search_word != SEARCH_WORDS[-1]:
 
-            time.sleep(3)
+            time.sleep(
+                3
+            )
 
     # ========================================================
-    # 結果表示
+    # タイトルフィルタ結果
     # ========================================================
 
     print()
     print("=" * 70)
-    print("RSS検索結果")
+    print("タイトルフィルタ結果")
     print("=" * 70)
 
     print(
-        f"RSS取得成功: "
-        f"{success_count}/{len(SEARCH_WORDS)}"
+        f"タイトル条件を通過: "
+        f"{len(natalie_candidates)}件"
     )
 
     print(
-        f"ナタリー候補: "
-        f"{len(natalie_candidates)}件"
+        f"タイトル条件で除外: "
+        f"{title_excluded_count}件"
     )
 
     # ========================================================
@@ -838,7 +853,10 @@ if __name__ == "__main__":
 
     print()
     print("=" * 70)
-    print("Google News → コミックナタリーURL変換")
+    print(
+        "Google News → "
+        "コミックナタリーURL変換"
+    )
     print("=" * 70)
 
     for index, item in enumerate(
@@ -860,26 +878,13 @@ if __name__ == "__main__":
             f"{item['title']}"
         )
 
-        print(
-            f"公開日時: "
-            f"{item['pub_date']}"
-        )
-
         # ----------------------------------------------------
-        # Google News URL
+        # 元記事URL
         # ----------------------------------------------------
-
-        google_news_url = item[
-            "link"
-        ]
 
         article_url = resolve_google_news_url(
-            google_news_url
+            item["link"]
         )
-
-        # ----------------------------------------------------
-        # ナタリー記事か確認
-        # ----------------------------------------------------
 
         if not article_url:
 
@@ -888,6 +893,10 @@ if __name__ == "__main__":
             )
 
             continue
+
+        # ----------------------------------------------------
+        # コミックナタリー確認
+        # ----------------------------------------------------
 
         if not is_natalie_comic_url(
             article_url
@@ -899,7 +908,8 @@ if __name__ == "__main__":
             )
 
             print(
-                f"取得URL: {article_url}"
+                f"取得URL: "
+                f"{article_url}"
             )
 
             continue
@@ -909,13 +919,13 @@ if __name__ == "__main__":
         )
 
         # ----------------------------------------------------
-        # 既存URLチェック
+        # 既存URL
         # ----------------------------------------------------
 
         if article_url in existing_urls:
 
             print(
-                "→ news.jsonに既に存在するためスキップ"
+                "→ 既にnews.jsonに存在"
             )
 
             continue
@@ -925,8 +935,9 @@ if __name__ == "__main__":
             "article_url": article_url,
         })
 
-        # Googleへの連続アクセスを抑える
-        time.sleep(1)
+        time.sleep(
+            1
+        )
 
     # ========================================================
     # news.jsonへ追加
@@ -938,6 +949,7 @@ if __name__ == "__main__":
     print("=" * 70)
 
     new_count = 0
+
     duplicate_count = 0
 
     for result in resolved_results:
@@ -953,6 +965,7 @@ if __name__ == "__main__":
         if article_url in existing_urls:
 
             duplicate_count += 1
+
             continue
 
         news_item = create_news_item(
@@ -991,7 +1004,7 @@ if __name__ == "__main__":
         )
 
     # --------------------------------------------------------
-    # 日付の新しい順に並べる
+    # 日付順
     # --------------------------------------------------------
 
     news.sort(
@@ -1035,7 +1048,7 @@ if __name__ == "__main__":
     )
 
     print(
-        f"ナタリー候補: "
+        f"タイトル条件通過: "
         f"{len(natalie_candidates)}件"
     )
 
