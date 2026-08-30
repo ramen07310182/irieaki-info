@@ -1,4 +1,3 @@
-```python
 import time
 from urllib.parse import quote, urlparse
 
@@ -636,4 +635,3 @@ if __name__ == "__main__":
         )
 
         raise SystemExit(1)
-```
