@@ -1,8 +1,5 @@
-import json
-import os
 import time
-from datetime import datetime, timezone
-from urllib.parse import quote, urljoin, urlparse
+from urllib.parse import quote
 
 import requests
 from bs4 import BeautifulSoup
@@ -28,20 +25,6 @@ WAIT_TIMES = [
     30,
     60,
 ]
-
-# ------------------------------------------------------------
-# data/news.json
-# ------------------------------------------------------------
-
-NEWS_JSON = os.path.join(
-    os.path.dirname(
-        os.path.dirname(
-            os.path.abspath(__file__)
-        )
-    ),
-    "data",
-    "news.json"
-)
 
 HEADERS = {
     "User-Agent": (
@@ -76,16 +59,16 @@ def get_rss(search_word):
     )
 
     print()
-    print("=" * 60)
+    print("=" * 70)
     print("Google News RSSへアクセス")
-    print("=" * 60)
+    print("=" * 70)
 
     print(
         f"検索ワード: {search_word}"
     )
 
     print(
-        f"URL: {url}"
+        f"RSS URL: {url}"
     )
 
     for attempt in range(MAX_RETRIES):
@@ -170,10 +153,10 @@ def get_rss(search_word):
 
 
 # ============================================================
-# Google News RSSの記事解析
+# RSSの内容をデバッグ表示
 # ============================================================
 
-def parse_rss(response):
+def debug_rss(response):
 
     soup = BeautifulSoup(
         response.content,
@@ -185,695 +168,219 @@ def parse_rss(response):
     )
 
     print()
+    print("=" * 70)
     print(
         f"RSS内の記事数: {len(items)}件"
     )
+    print("=" * 70)
 
-    results = []
+    if not items:
 
-    for item in items:
+        print(
+            "RSS内にitemがありません。"
+        )
 
-        title_element = item.find(
+        return
+
+    # --------------------------------------------------------
+    # 最初の3件を詳しく表示
+    # --------------------------------------------------------
+
+    for index, item in enumerate(
+        items[:3],
+        start=1
+    ):
+
+        print()
+        print("=" * 70)
+        print(
+            f"【RSS記事 {index}件目】"
+        )
+        print("=" * 70)
+
+        # ----------------------------------------------------
+        # title
+        # ----------------------------------------------------
+
+        title = item.find(
             "title"
         )
 
-        link_element = item.find(
+        print()
+        print(
+            "[title]"
+        )
+
+        if title:
+
+            print(
+                title.get_text(
+                    strip=True
+                )
+            )
+
+        else:
+
+            print(
+                "なし"
+            )
+
+        # ----------------------------------------------------
+        # link
+        # ----------------------------------------------------
+
+        link = item.find(
             "link"
         )
 
-        pub_date_element = item.find(
-            "pubDate"
+        print()
+        print(
+            "[link]"
         )
 
-        source_element = item.find(
+        if link:
+
+            print(
+                link.get_text(
+                    strip=True
+                )
+            )
+
+        else:
+
+            print(
+                "なし"
+            )
+
+        # ----------------------------------------------------
+        # source
+        # ----------------------------------------------------
+
+        source = item.find(
             "source"
         )
 
-        if title_element is None:
-            continue
-
-        title = title_element.get_text(
-            strip=True
-        )
-
-        link = ""
-
-        if link_element:
-
-            link = link_element.get_text(
-                strip=True
-            )
-
-        pub_date = ""
-
-        if pub_date_element:
-
-            pub_date = pub_date_element.get_text(
-                strip=True
-            )
-
-        source = ""
-
-        if source_element:
-
-            source = source_element.get_text(
-                strip=True
-            )
-
-        results.append({
-            "title": title,
-            "link": link,
-            "pub_date": pub_date,
-            "source": source,
-        })
-
-    return results
-
-
-# ============================================================
-# コミックナタリーURL判定
-# ============================================================
-
-def is_natalie_url(url):
-
-    if not url:
-
-        return False
-
-    try:
-
-        parsed = urlparse(
-            url
-        )
-
-        hostname = (
-            parsed.hostname or ""
-        ).lower()
-
-        path = (
-            parsed.path or ""
-        ).lower()
-
-        return (
-            hostname == "natalie.mu"
-            and path.startswith(
-                "/comic/"
-            )
-        )
-
-    except Exception:
-
-        return False
-
-
-# ============================================================
-# Google News URLから実際の記事URLを取得
-# ============================================================
-
-def resolve_google_news_url(
-    google_news_url
-):
-
-    if not google_news_url:
-
-        return ""
-
-    print()
-    print(
-        "Google News URLを確認中..."
-    )
-
-    print(
-        f"Google News URL: "
-        f"{google_news_url}"
-    )
-
-    try:
-
-        response = requests.get(
-            google_news_url,
-            headers=HEADERS,
-            timeout=30,
-            allow_redirects=True
-        )
-
+        print()
         print(
-            f"HTTPステータス: "
-            f"{response.status_code}"
+            "[source]"
         )
 
-        # ----------------------------------------------------
-        # リダイレクト後のURL
-        # ----------------------------------------------------
-
-        final_url = response.url
-
-        print(
-            f"リダイレクト先: "
-            f"{final_url}"
-        )
-
-        if is_natalie_url(
-            final_url
-        ):
+        if source:
 
             print(
-                "★ リダイレクト先は"
-                "コミックナタリーです。"
-            )
-
-            return final_url
-
-        # ----------------------------------------------------
-        # HTML内のリンクを確認
-        # ----------------------------------------------------
-
-        soup = BeautifulSoup(
-            response.text,
-            "html.parser"
-        )
-
-        links = soup.find_all(
-            "a",
-            href=True
-        )
-
-        for a in links:
-
-            href = a.get(
-                "href"
-            )
-
-            if not href:
-
-                continue
-
-            absolute_url = urljoin(
-                response.url,
-                href
-            )
-
-            if is_natalie_url(
-                absolute_url
-            ):
-
-                print(
-                    "★ HTML内から"
-                    "コミックナタリーURLを発見しました。"
+                source.get_text(
+                    strip=True
                 )
-
-                print(
-                    f"実際の記事URL: "
-                    f"{absolute_url}"
-                )
-
-                return absolute_url
-
-        # ----------------------------------------------------
-        # meta refresh
-        # ----------------------------------------------------
-
-        meta_refresh = soup.find(
-            "meta",
-            attrs={
-                "http-equiv": "refresh"
-            }
-        )
-
-        if meta_refresh:
-
-            content = meta_refresh.get(
-                "content",
-                ""
             )
-
-            if "url=" in content.lower():
-
-                refresh_url = content.split(
-                    "=",
-                    1
-                )[1].strip()
-
-                refresh_url = urljoin(
-                    response.url,
-                    refresh_url
-                )
-
-                if is_natalie_url(
-                    refresh_url
-                ):
-
-                    print(
-                        "★ Meta Refreshから"
-                        "コミックナタリーURLを発見しました。"
-                    )
-
-                    return refresh_url
-
-        print(
-            "コミックナタリーのURLを"
-            "確認できませんでした。"
-        )
-
-        return ""
-
-    except requests.RequestException as e:
-
-        print(
-            f"記事URL確認中の通信エラー: {e}"
-        )
-
-        return ""
-
-    except Exception as e:
-
-        print(
-            f"記事URL確認中のエラー: {e}"
-        )
-
-        return ""
-
-
-# ============================================================
-# RSS日時をYYYY-MM-DDに変換
-# ============================================================
-
-def convert_date(pub_date):
-
-    if not pub_date:
-
-        return ""
-
-    formats = [
-        "%a, %d %b %Y %H:%M:%S %Z",
-        "%a, %d %b %Y %H:%M:%S %z",
-    ]
-
-    for fmt in formats:
-
-        try:
-
-            dt = datetime.strptime(
-                pub_date,
-                fmt
-            )
-
-            if dt.tzinfo:
-
-                dt = dt.astimezone(
-                    timezone.utc
-                )
-
-            return dt.strftime(
-                "%Y-%m-%d"
-            )
-
-        except ValueError:
-
-            continue
-
-    # --------------------------------------------------------
-    # 変換できない場合
-    # --------------------------------------------------------
-
-    return pub_date[:10]
-
-
-# ============================================================
-# news.json読み込み
-# ============================================================
-
-def load_news():
-
-    if not os.path.exists(
-        NEWS_JSON
-    ):
-
-        print(
-            "news.jsonが存在しません。"
-        )
-
-        return []
-
-    try:
-
-        with open(
-            NEWS_JSON,
-            "r",
-            encoding="utf-8"
-        ) as f:
-
-            data = json.load(
-                f
-            )
-
-        if not isinstance(
-            data,
-            list
-        ):
 
             print(
-                "news.jsonの形式が不正です。"
+                f"source属性: "
+                f"{source.attrs}"
             )
 
-            return []
+        else:
 
-        return data
+            print(
+                "なし"
+            )
 
-    except Exception as e:
+        # ----------------------------------------------------
+        # pubDate
+        # ----------------------------------------------------
 
-        print(
-            f"news.jsonの読み込みに失敗しました: {e}"
+        pub_date = item.find(
+            "pubDate"
         )
-
-        return []
-
-
-# ============================================================
-# news.json保存
-# ============================================================
-
-def save_news(news):
-
-    with open(
-        NEWS_JSON,
-        "w",
-        encoding="utf-8"
-    ) as f:
-
-        json.dump(
-            news,
-            f,
-            ensure_ascii=False,
-            indent=2
-        )
-
-        f.write(
-            "\n"
-        )
-
-
-# ============================================================
-# RSS記事をnews.json形式へ変換
-# ============================================================
-
-def convert_to_news_item(
-    item,
-    actual_url
-):
-
-    return {
-        "date": convert_date(
-            item["pub_date"]
-        ),
-        "title": item["title"],
-        "source": "コミックナタリー",
-        "category": "ニュース",
-        "author": "入江亜季",
-        "url": actual_url,
-        "keyword": "入江亜季, 北北西に曇と往け",
-    }
-
-
-# ============================================================
-# 成功した検索結果を確認
-# ============================================================
-
-def check_natalie_results(
-    success_results
-):
-
-    print()
-    print("=" * 60)
-    print("コミックナタリー記事の確認")
-    print("=" * 60)
-
-    checked_results = []
-
-    for data in success_results:
-
-        search_word = data[
-            "search_word"
-        ]
-
-        results = data[
-            "results"
-        ]
 
         print()
         print(
-            f"検索ワード: {search_word}"
+            "[pubDate]"
         )
 
-        for index, item in enumerate(
-            results,
-            start=1
+        if pub_date:
+
+            print(
+                pub_date.get_text(
+                    strip=True
+                )
+            )
+
+        else:
+
+            print(
+                "なし"
+            )
+
+        # ----------------------------------------------------
+        # description
+        # ----------------------------------------------------
+
+        description = item.find(
+            "description"
+        )
+
+        print()
+        print(
+            "[description]"
+        )
+
+        if description:
+
+            print(
+                description.get_text(
+                    strip=True
+                )
+            )
+
+        else:
+
+            print(
+                "なし"
+            )
+
+        # ----------------------------------------------------
+        # その他のタグ
+        # ----------------------------------------------------
+
+        print()
+        print(
+            "[その他のRSSデータ]"
+        )
+
+        for child in item.find_all(
+            recursive=False
         ):
+
+            print(
+                f"タグ: <{child.name}>"
+            )
+
+            print(
+                f"内容: "
+                f"{child.get_text(strip=True)}"
+            )
+
+            if child.attrs:
+
+                print(
+                    f"属性: "
+                    f"{child.attrs}"
+                )
 
             print()
-            print(
-                f"[記事 {index}]"
-            )
-
-            print(
-                f"タイトル: "
-                f"{item['title']}"
-            )
-
-            print(
-                f"RSS URL: "
-                f"{item['link']}"
-            )
-
-            print(
-                f"配信元: "
-                f"{item['source']}"
-            )
-
-            # ------------------------------------------------
-            # Google News URLを実際の記事URLへ変換
-            # ------------------------------------------------
-
-            actual_url = resolve_google_news_url(
-                item["link"]
-            )
-
-            if actual_url:
-
-                print(
-                    f"実際の記事URL: "
-                    f"{actual_url}"
-                )
-
-                if is_natalie_url(
-                    actual_url
-                ):
-
-                    print(
-                        "★ コミックナタリー判定: YES"
-                    )
-
-                    checked_results.append({
-                        "item": item,
-                        "actual_url": actual_url,
-                    })
-
-                else:
-
-                    print(
-                        "→ コミックナタリー判定: NO"
-                    )
-
-            else:
-
-                print(
-                    "→ 実際の記事URLを"
-                    "取得できませんでした。"
-                )
-
-            # ------------------------------------------------
-            # Google Newsへの連続アクセスを避ける
-            # ------------------------------------------------
-
-            time.sleep(
-                1
-            )
-
-    print()
-    print("-" * 60)
-
-    print(
-        f"コミックナタリー判定: "
-        f"{len(checked_results)}件"
-    )
-
-    return checked_results
-
-
-# ============================================================
-# コミックナタリー記事をnews.jsonへ保存
-# ============================================================
-
-def save_natalie_results(
-    checked_results
-):
-
-    print()
-    print("=" * 60)
-    print("news.jsonへの保存処理")
-    print("=" * 60)
-
-    # --------------------------------------------------------
-    # 既存データ読み込み
-    # --------------------------------------------------------
-
-    news = load_news()
-
-    print(
-        f"既存のnews.json: "
-        f"{len(news)}件"
-    )
-
-    # --------------------------------------------------------
-    # 既存URLを取得
-    # --------------------------------------------------------
-
-    existing_urls = set()
-
-    for item in news:
-
-        url = item.get(
-            "url",
-            ""
-        )
-
-        if url:
-
-            existing_urls.add(
-                url
-            )
-
-    new_items = []
-
-    skipped_count = 0
-
-    # --------------------------------------------------------
-    # 新規記事追加
-    # --------------------------------------------------------
-
-    for data in checked_results:
-
-        item = data["item"]
-
-        actual_url = data[
-            "actual_url"
-        ]
-
-        news_item = convert_to_news_item(
-            item,
-            actual_url
-        )
 
         # ----------------------------------------------------
-        # URL重複確認
+        # XMLそのもの
         # ----------------------------------------------------
-
-        if actual_url in existing_urls:
-
-            skipped_count += 1
-
-            print()
-            print(
-                "既存記事のためスキップ:"
-            )
-
-            print(
-                news_item["title"]
-            )
-
-            continue
-
-        # ----------------------------------------------------
-        # 新規追加
-        # ----------------------------------------------------
-
-        news.append(
-            news_item
-        )
-
-        new_items.append(
-            news_item
-        )
-
-        existing_urls.add(
-            actual_url
-        )
 
         print()
         print(
-            "★ 新規記事を追加:"
+            "[item全体のXML]"
         )
 
         print(
-            f"タイトル: "
-            f"{news_item['title']}"
+            item.prettify()
         )
-
-        print(
-            f"日付: "
-            f"{news_item['date']}"
-        )
-
-        print(
-            f"URL: "
-            f"{news_item['url']}"
-        )
-
-    # --------------------------------------------------------
-    # 保存
-    # --------------------------------------------------------
-
-    if new_items:
-
-        save_news(
-            news
-        )
-
-        print()
-        print(
-            "data/news.jsonを更新しました。"
-        )
-
-    else:
-
-        print()
-        print(
-            "新しく追加する記事はありません。"
-        )
-
-    # --------------------------------------------------------
-    # 集計
-    # --------------------------------------------------------
-
-    print()
-    print("-" * 60)
-
-    print(
-        f"新規追加: "
-        f"{len(new_items)}件"
-    )
-
-    print(
-        f"重複スキップ: "
-        f"{skipped_count}件"
-    )
-
-    print(
-        f"news.json合計: "
-        f"{len(news)}件"
-    )
-
-    return new_items
 
 
 # ============================================================
@@ -882,30 +389,20 @@ def save_natalie_results(
 
 if __name__ == "__main__":
 
+    print()
     print(
         "コミックナタリー"
-        " Google News RSS取得テスト"
+        " Google News RSSデバッグテスト"
     )
 
     print()
-
     print(
-        f"保存先:"
-    )
-
-    print(
-        NEWS_JSON
+        "※今回はnews.jsonを変更しません。"
     )
 
     print()
 
     success_count = 0
-
-    success_results = []
-
-    # ========================================================
-    # RSS検索
-    # ========================================================
 
     for search_word in SEARCH_WORDS:
 
@@ -925,22 +422,17 @@ if __name__ == "__main__":
 
         try:
 
-            results = parse_rss(
+            debug_rss(
                 response
             )
 
             success_count += 1
 
-            success_results.append({
-                "search_word": search_word,
-                "results": results,
-            })
-
         except Exception as e:
 
             print()
             print(
-                "RSSの解析中に"
+                "RSS解析中に"
                 "エラーが発生しました。"
             )
 
@@ -959,105 +451,26 @@ if __name__ == "__main__":
             )
 
     # ========================================================
-    # RSS取得結果
+    # 結果
     # ========================================================
 
     print()
-    print("=" * 60)
-    print("RSS取得テスト結果")
-    print("=" * 60)
-
-    print(
-        f"成功した検索: "
-        f"{success_count}/{len(SEARCH_WORDS)}"
-    )
-
-    # ========================================================
-    # 実際の記事URLを確認
-    # ========================================================
-
-    if success_results:
-
-        checked_results = check_natalie_results(
-            success_results
-        )
-
-    else:
-
-        checked_results = []
-
-        print()
-        print(
-            "成功したRSS検索がないため、"
-            "記事URLの確認を行いません。"
-        )
-
-    # ========================================================
-    # news.jsonへ保存
-    # ========================================================
-
-    if checked_results:
-
-        new_items = save_natalie_results(
-            checked_results
-        )
-
-    else:
-
-        new_items = []
-
-        print()
-        print(
-            "コミックナタリーの記事が"
-            "見つからなかったため、"
-            "news.jsonは変更しません。"
-        )
-
-    # ========================================================
-    # 最終結果
-    # ========================================================
-
-    print()
-    print("=" * 60)
-    print("最終結果")
-    print("=" * 60)
+    print("=" * 70)
+    print("テスト結果")
+    print("=" * 70)
 
     print(
         f"RSS取得成功: "
         f"{success_count}/{len(SEARCH_WORDS)}"
     )
 
+    print()
+
     print(
-        f"コミックナタリー記事: "
-        f"{len(checked_results)}件"
+        "上記のRSSデータを確認してください。"
     )
 
     print(
-        f"news.jsonへ新規追加: "
-        f"{len(new_items)}件"
+        "特に [link]、[source]、"
+        "[description] の内容が重要です。"
     )
-
-    if success_count == len(
-        SEARCH_WORDS
-    ):
-
-        print()
-        print(
-            "すべてのRSS検索に成功しました。"
-        )
-
-    elif success_count > 0:
-
-        print()
-        print(
-            "一部のRSS検索に成功しました。"
-        )
-
-    else:
-
-        print()
-        print(
-            "RSS検索にすべて失敗しました。"
-        )
-
-        raise SystemExit(1)
