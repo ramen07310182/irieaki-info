@@ -49,7 +49,7 @@ jobs:
 
       - name: 必要なライブラリをインストール
         run: |
-          pip install requests beautifulsoup4
+          pip install playwright beautifulsoup4 lxml
 
       - name: Test Natalie
         run: python collectors/natalie_test.py
