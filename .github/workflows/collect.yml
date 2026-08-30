@@ -3,15 +3,18 @@ name: 入江亜季 情報自動収集
 on:
   schedule:
     # 日本時間 午前6時
-    # GitHub ActionsはUTCなので前日の21時
     - cron: "0 21 * * *"
 
     # 日本時間 午後6時
-    # UTCでは9時
     - cron: "0 9 * * *"
 
-  # GitHubから手動実行できるようにする
+  # GitHubから手動実行
   workflow_dispatch:
+
+
+# GitHub Actionsにリポジトリへの書き込みを許可
+permissions:
+  contents: write
 
 
 jobs:
