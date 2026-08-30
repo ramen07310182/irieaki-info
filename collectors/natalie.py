@@ -36,6 +36,7 @@ NEWS_JSON = os.path.join(
             os.path.abspath(__file__)
         )
     ),
+    "data",
     "news.json"
 )
 
