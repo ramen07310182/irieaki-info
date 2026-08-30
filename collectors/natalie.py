@@ -1,11 +1,17 @@
 import json
 import re
+import sys
+import time
 from pathlib import Path
 from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
 
+
+# ============================================================
+# 設定
+# ============================================================
 
 BASE_URL = "https://natalie.mu"
 
@@ -20,6 +26,279 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 DATA_FILE = DATA_DIR / "news.json"
 
+# 通常アクセス間隔
+REQUEST_INTERVAL = 3
+
+# 最大再試行回数
+MAX_RETRIES = 3
+
+# 再試行待機時間
+RETRY_WAIT_TIMES = [
+    10,
+    30,
+    60,
+]
+
+
+# ============================================================
+# HTTPヘッダー
+# ============================================================
+
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 "
+        "(KHTML, like Gecko) "
+        "Chrome/151.0.0.0 Safari/537.36"
+    ),
+
+    "Accept": (
+        "text/html,application/xhtml+xml,"
+        "application/xml;q=0.9,"
+        "image/avif,image/webp,"
+        "image/apng,*/*;q=0.8"
+    ),
+
+    "Accept-Language": (
+        "ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7"
+    ),
+
+    "Accept-Encoding": (
+        "gzip, deflate, br"
+    ),
+
+    "Connection": "keep-alive",
+
+    "Upgrade-Insecure-Requests": "1",
+
+    "Sec-Fetch-Dest": "document",
+
+    "Sec-Fetch-Mode": "navigate",
+
+    "Sec-Fetch-Site": "none",
+
+    "Sec-Fetch-User": "?1",
+}
+
+
+# ============================================================
+# Session
+# ============================================================
+
+session = requests.Session()
+
+session.headers.update(
+    HEADERS
+)
+
+
+# ============================================================
+# URLアクセス
+# ============================================================
+
+def request_news_page():
+
+    for attempt in range(MAX_RETRIES):
+
+        try:
+
+            print(
+                f"コミックナタリーへアクセス中..."
+                f"（試行 {attempt + 1}/{MAX_RETRIES}）"
+            )
+
+            response = session.get(
+                NEWS_URL,
+                timeout=30,
+                allow_redirects=True,
+            )
+
+            print(
+                f"HTTPステータス: "
+                f"{response.status_code}"
+            )
+
+            # ------------------------------------------------
+            # 成功
+            # ------------------------------------------------
+
+            if response.status_code == 200:
+
+                time.sleep(
+                    REQUEST_INTERVAL
+                )
+
+                return response
+
+            # ------------------------------------------------
+            # 405
+            # ------------------------------------------------
+
+            if response.status_code == 405:
+
+                print(
+                    "405 Method Not Allowed"
+                )
+
+                if attempt < MAX_RETRIES - 1:
+
+                    wait_time = RETRY_WAIT_TIMES[
+                        attempt
+                    ]
+
+                    print(
+                        f"{wait_time}秒待って再試行します..."
+                    )
+
+                    time.sleep(
+                        wait_time
+                    )
+
+                    continue
+
+                print(
+                    "405エラーのため取得を中止します。"
+                )
+
+                return None
+
+            # ------------------------------------------------
+            # 403
+            # ------------------------------------------------
+
+            if response.status_code == 403:
+
+                print(
+                    "403 Forbidden"
+                )
+
+                if attempt < MAX_RETRIES - 1:
+
+                    wait_time = RETRY_WAIT_TIMES[
+                        attempt
+                    ]
+
+                    print(
+                        f"{wait_time}秒待って再試行します..."
+                    )
+
+                    time.sleep(
+                        wait_time
+                    )
+
+                    continue
+
+                print(
+                    "403エラーのため取得を中止します。"
+                )
+
+                return None
+
+            # ------------------------------------------------
+            # 429
+            # ------------------------------------------------
+
+            if response.status_code == 429:
+
+                retry_after = response.headers.get(
+                    "Retry-After"
+                )
+
+                if retry_after:
+
+                    try:
+
+                        wait_time = int(
+                            retry_after
+                        )
+
+                    except ValueError:
+
+                        wait_time = RETRY_WAIT_TIMES[
+                            attempt
+                        ]
+
+                else:
+
+                    wait_time = RETRY_WAIT_TIMES[
+                        attempt
+                    ]
+
+                print(
+                    "429 Too Many Requests"
+                )
+
+                print(
+                    f"{wait_time}秒待って再試行します..."
+                )
+
+                if attempt < MAX_RETRIES - 1:
+
+                    time.sleep(
+                        wait_time
+                    )
+
+                    continue
+
+                return None
+
+            # ------------------------------------------------
+            # その他
+            # ------------------------------------------------
+
+            print(
+                f"HTTPエラー: "
+                f"{response.status_code}"
+            )
+
+            if attempt < MAX_RETRIES - 1:
+
+                wait_time = RETRY_WAIT_TIMES[
+                    attempt
+                ]
+
+                print(
+                    f"{wait_time}秒待って再試行します..."
+                )
+
+                time.sleep(
+                    wait_time
+                )
+
+                continue
+
+            return None
+
+        except requests.RequestException as e:
+
+            print(
+                f"通信エラー: {e}"
+            )
+
+            if attempt < MAX_RETRIES - 1:
+
+                wait_time = RETRY_WAIT_TIMES[
+                    attempt
+                ]
+
+                print(
+                    f"{wait_time}秒待って再試行します..."
+                )
+
+                time.sleep(
+                    wait_time
+                )
+
+                continue
+
+            return None
+
+    return None
+
+
+# ============================================================
+# ニュース取得
+# ============================================================
 
 def get_news():
     """
@@ -27,17 +306,13 @@ def get_news():
     日付・タイトル・URLを取得する。
     """
 
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
+    response = request_news_page()
 
-    response = requests.get(
-        NEWS_URL,
-        headers=headers,
-        timeout=30
-    )
+    if response is None:
 
-    response.raise_for_status()
+        raise RuntimeError(
+            "コミックナタリーへのアクセスに失敗しました。"
+        )
 
     soup = BeautifulSoup(
         response.text,
@@ -46,23 +321,40 @@ def get_news():
 
     news_list = []
 
+    # ========================================================
     # ページ内のリンクを確認
-    for link in soup.find_all("a", href=True):
+    # ========================================================
 
-        text = link.get_text(" ", strip=True)
+    for link in soup.find_all(
+        "a",
+        href=True
+    ):
+
+        text = link.get_text(
+            " ",
+            strip=True
+        )
 
         if not text:
             continue
 
         href = link["href"]
 
-        # コミックナタリーの記事URLだけを対象にする
+        # ----------------------------------------------------
+        # コミックナタリーの記事URLだけを対象
+        # ----------------------------------------------------
+
         if "/comic/news/" not in href:
             continue
 
+        # ----------------------------------------------------
         # 日付を探す
+        # ----------------------------------------------------
+
         match = re.search(
-            r"(\d{4})[./年](\d{1,2})[./月](\d{1,2})",
+            r"(\d{4})[./年]"
+            r"(\d{1,2})[./月]"
+            r"(\d{1,2})",
             text
         )
 
@@ -75,7 +367,10 @@ def get_news():
             f"{int(match.group(3)):02d}"
         )
 
+        # ----------------------------------------------------
         # タイトルから日付表記を削除
+        # ----------------------------------------------------
+
         title = re.sub(
             r"^\s*[\[\【]?\s*"
             r"\d{4}[./年]\d{1,2}[./月]\d{1,2}日?"
@@ -84,7 +379,10 @@ def get_news():
             text
         ).strip()
 
-        # 「2026年5月4日～」などがタイトル先頭に残った場合
+        # ----------------------------------------------------
+        # 「2026年5月4日～」などが残った場合
+        # ----------------------------------------------------
+
         title = re.sub(
             r"^\s*[\[\【]?\s*"
             r"\d{4}年\d{1,2}月\d{1,2}日"
@@ -96,21 +394,29 @@ def get_news():
         if not title:
             continue
 
-        # 相対URLを絶対URLへ変換
+        # ----------------------------------------------------
+        # 相対URLを絶対URLへ
+        # ----------------------------------------------------
+
         url = urljoin(
             BASE_URL,
             href
         )
 
-        news_list.append({
-            "date": date,
-            "title": title,
-            "source": "コミックナタリー",
-            "category": "ニュース",
-            "url": url
-        })
+        news_list.append(
+            {
+                "date": date,
+                "title": title,
+                "source": "コミックナタリー",
+                "category": "ニュース",
+                "url": url,
+            }
+        )
 
+    # ========================================================
     # URLで重複排除
+    # ========================================================
+
     unique_news = []
 
     seen_urls = set()
@@ -120,11 +426,20 @@ def get_news():
         if item["url"] in seen_urls:
             continue
 
-        seen_urls.add(item["url"])
-        unique_news.append(item)
+        seen_urls.add(
+            item["url"]
+        )
+
+        unique_news.append(
+            item
+        )
 
     return unique_news
 
+
+# ============================================================
+# news.json読み込み
+# ============================================================
 
 def load_saved_news():
     """
@@ -132,6 +447,7 @@ def load_saved_news():
     """
 
     if not DATA_FILE.exists():
+
         return []
 
     try:
@@ -144,15 +460,26 @@ def load_saved_news():
 
             data = json.load(f)
 
-        if isinstance(data, list):
+        if isinstance(
+            data,
+            list
+        ):
+
             return data
 
         return []
 
-    except (json.JSONDecodeError, OSError):
+    except (
+        json.JSONDecodeError,
+        OSError
+    ):
 
         return []
 
+
+# ============================================================
+# news.json保存
+# ============================================================
 
 def save_news(new_news):
     """
@@ -170,7 +497,10 @@ def save_news(new_news):
 
     saved_news = load_saved_news()
 
-    # 既に保存されているURL
+    # --------------------------------------------------------
+    # 既存URL
+    # --------------------------------------------------------
+
     existing_urls = {
         item.get("url")
         for item in saved_news
@@ -179,13 +509,19 @@ def save_news(new_news):
 
     added_count = 0
 
+    # --------------------------------------------------------
+    # 新しいニュースを追加
+    # --------------------------------------------------------
+
     for item in new_news:
 
-        # 既に登録されている場合はスキップ
         if item["url"] in existing_urls:
+
             continue
 
-        saved_news.append(item)
+        saved_news.append(
+            item
+        )
 
         existing_urls.add(
             item["url"]
@@ -193,13 +529,22 @@ def save_news(new_news):
 
         added_count += 1
 
+    # --------------------------------------------------------
     # 日付の新しい順
+    # --------------------------------------------------------
+
     saved_news.sort(
-        key=lambda x: x.get("date", ""),
+        key=lambda x: x.get(
+            "date",
+            ""
+        ),
         reverse=True
     )
 
+    # --------------------------------------------------------
     # 保存
+    # --------------------------------------------------------
+
     with open(
         DATA_FILE,
         "w",
@@ -213,8 +558,15 @@ def save_news(new_news):
             indent=2
         )
 
-    return added_count, len(saved_news)
+    return (
+        added_count,
+        len(saved_news)
+    )
 
+
+# ============================================================
+# メイン
+# ============================================================
 
 if __name__ == "__main__":
 
@@ -226,7 +578,10 @@ if __name__ == "__main__":
 
     try:
 
+        # ====================================================
         # ニュース取得
+        # ====================================================
+
         news = get_news()
 
         if not news:
@@ -235,34 +590,44 @@ if __name__ == "__main__":
                 "ニュースを取得できませんでした。"
             )
 
-        else:
+            # GitHub Actionsでも失敗扱いにする
+            sys.exit(1)
 
-            print(
-                f"{len(news)}件のニュースを取得しました。"
-            )
+        print(
+            f"{len(news)}件のニュースを取得しました。"
+        )
 
-            print()
+        print()
 
-            # news.jsonへ保存
-            added_count, total_count = save_news(
-                news
-            )
+        # ====================================================
+        # news.jsonへ保存
+        # ====================================================
 
-            print(
-                f"新しく追加したニュース: "
-                f"{added_count}件"
-            )
+        added_count, total_count = save_news(
+            news
+        )
 
-            print(
-                f"保存されているニュース: "
-                f"{total_count}件"
-            )
+        print(
+            f"新しく追加したニュース: "
+            f"{added_count}件"
+        )
 
-            print()
+        print(
+            f"保存されているニュース: "
+            f"{total_count}件"
+        )
 
-            print(
-                f"保存先: {DATA_FILE}"
-            )
+        print()
+
+        print(
+            f"保存先: {DATA_FILE}"
+        )
+
+        print()
+
+        print(
+            "コミックナタリーの処理が完了しました。"
+        )
 
     except requests.RequestException as e:
 
@@ -270,12 +635,23 @@ if __name__ == "__main__":
             "サイトへのアクセスに失敗しました。"
         )
 
-        print(f"エラー: {e}")
+        print(
+            f"エラー: {e}"
+        )
+
+        # GitHub Actionsを失敗扱いにする
+        sys.exit(1)
 
     except Exception as e:
 
         print(
-            "データの保存中にエラーが発生しました。"
+            "データの取得・保存中に"
+            "エラーが発生しました。"
         )
 
-        print(f"エラー: {e}")
+        print(
+            f"エラー: {e}"
+        )
+
+        # GitHub Actionsを失敗扱いにする
+        sys.exit(1)
