@@ -1,5 +1,6 @@
+```python
 import time
-from urllib.parse import quote, urlparse, parse_qs, unquote
+from urllib.parse import quote, urlparse
 
 import requests
 from bs4 import BeautifulSoup
@@ -275,7 +276,7 @@ def is_natalie_url(url):
 
 
 # ============================================================
-# Google Newsの記事URLを確認
+# 検索結果表示
 # ============================================================
 
 def show_results(
@@ -293,10 +294,11 @@ def show_results(
     if not results:
 
         print(
-            "記事が見つかりませんでした。"
+            "RSSは取得できましたが、"
+            "記事がありませんでした。"
         )
 
-        return
+        return 0
 
     natalie_count = 0
 
@@ -366,6 +368,123 @@ def show_results(
         f"{natalie_count}件"
     )
 
+    return natalie_count
+
+
+# ============================================================
+# 成功した検索の内容をまとめて表示
+# ============================================================
+
+def show_success_results(
+    success_results
+):
+
+    print()
+    print()
+    print("=" * 70)
+    print("成功した検索の実際の取得内容")
+    print("=" * 70)
+
+    if not success_results:
+
+        print(
+            "成功した検索はありません。"
+        )
+
+        return
+
+    total_articles = 0
+    total_natalie = 0
+
+    for data in success_results:
+
+        search_word = data["search_word"]
+        results = data["results"]
+
+        print()
+        print(
+            "#" * 70
+        )
+
+        print(
+            f"検索ワード: {search_word}"
+        )
+
+        print(
+            f"取得記事数: {len(results)}件"
+        )
+
+        print(
+            "#" * 70
+        )
+
+        total_articles += len(
+            results
+        )
+
+        for index, item in enumerate(
+            results,
+            start=1
+        ):
+
+            title = item["title"]
+            link = item["link"]
+            pub_date = item["pub_date"]
+            source = item["source"]
+
+            natalie = is_natalie_url(
+                link
+            )
+
+            if natalie:
+                total_natalie += 1
+
+            print()
+            print(
+                f"【記事 {index}】"
+            )
+
+            print(
+                f"タイトル : {title}"
+            )
+
+            print(
+                f"公開日時 : {pub_date}"
+            )
+
+            print(
+                f"配信元   : {source}"
+            )
+
+            print(
+                f"URL      : {link}"
+            )
+
+            print(
+                f"判定     : "
+                f"{'コミックナタリー' if natalie else 'その他'}"
+            )
+
+    print()
+    print("=" * 70)
+    print("取得内容の集計")
+    print("=" * 70)
+
+    print(
+        f"成功した検索数: "
+        f"{len(success_results)}件"
+    )
+
+    print(
+        f"取得した記事総数: "
+        f"{total_articles}件"
+    )
+
+    print(
+        f"コミックナタリー記事: "
+        f"{total_natalie}件"
+    )
+
 
 # ============================================================
 # メイン
@@ -375,7 +494,7 @@ if __name__ == "__main__":
 
     print(
         "コミックナタリー"
-        "Google News RSS取得テスト"
+        " Google News RSS取得テスト"
     )
 
     print()
@@ -387,6 +506,9 @@ if __name__ == "__main__":
     print()
 
     success_count = 0
+
+    # 成功した検索と取得内容を保存
+    success_results = []
 
     for search_word in SEARCH_WORDS:
 
@@ -409,12 +531,23 @@ if __name__ == "__main__":
                 response
             )
 
+            # ------------------------------------------------
+            # この検索はRSS取得成功
+            # ------------------------------------------------
+
+            success_count += 1
+
+            # 成功した検索の内容を保存
+            success_results.append({
+                "search_word": search_word,
+                "results": results,
+            })
+
+            # その場でも表示
             show_results(
                 search_word,
                 results
             )
-
-            success_count += 1
 
         except Exception as e:
 
@@ -432,9 +565,23 @@ if __name__ == "__main__":
         # 検索ワード間隔
         # ----------------------------------------------------
 
-        time.sleep(
-            3
-        )
+        if search_word != SEARCH_WORDS[-1]:
+
+            time.sleep(
+                3
+            )
+
+    # ========================================================
+    # 最後に成功した検索の内容をまとめて表示
+    # ========================================================
+
+    show_success_results(
+        success_results
+    )
+
+    # ========================================================
+    # テスト結果
+    # ========================================================
 
     print()
     print("=" * 60)
@@ -456,9 +603,29 @@ if __name__ == "__main__":
             "取得テストに成功しました。"
         )
 
+        print()
         print(
-            "次の段階で、コミックナタリーの記事だけを"
-            "news.jsonへ保存する処理を追加できます。"
+            "上に表示された内容が、"
+            "今回RSSから実際に取得した記事データです。"
+        )
+
+        print()
+        print(
+            "次の段階で、"
+            "この取得データから必要な記事だけを"
+            "news.jsonへ保存できます。"
+        )
+
+    elif success_count > 0:
+
+        print()
+        print(
+            "一部の検索に成功しました。"
+        )
+
+        print(
+            "成功した検索については、"
+            "実際に取得した記事内容を上に表示しています。"
         )
 
     else:
@@ -469,3 +636,4 @@ if __name__ == "__main__":
         )
 
         raise SystemExit(1)
+```
