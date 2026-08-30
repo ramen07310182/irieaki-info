@@ -14,81 +14,112 @@
 
         body {
             margin: 0;
+            padding: 0;
             background: #f5f5f5;
             color: #333;
             font-family:
                 -apple-system,
                 BlinkMacSystemFont,
                 "Segoe UI",
-                "Noto Sans JP",
+                "Hiragino Kaku Gothic ProN",
+                "Hiragino Sans",
+                "Yu Gothic",
+                Meiryo,
                 sans-serif;
         }
 
-        header {
-            background: #333;
-            color: white;
-            padding: 20px 16px;
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: 22px;
-        }
-
-        header p {
-            margin: 6px 0 0;
-            font-size: 13px;
-            opacity: 0.8;
-        }
-
-        main {
+        .container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 16px;
+            padding: 20px 16px 40px;
         }
 
-        .section {
+        header {
             background: white;
             border-radius: 12px;
-            padding: 18px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            padding: 24px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
-        .section h2 {
-            margin-top: 0;
-            font-size: 18px;
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            line-height: 1.4;
         }
 
-        .info {
-            padding: 14px 0;
-            border-top: 1px solid #eee;
-        }
-
-        .info:first-child {
-            border-top: none;
-        }
-
-        .date {
-            font-size: 12px;
-            color: #888;
-        }
-
-        .title {
-            margin-top: 5px;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .message {
-            color: #777;
+        .description {
+            margin: 8px 0 0;
+            color: #666;
             font-size: 14px;
         }
 
-        footer {
+        .news-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .news-item {
+            background: white;
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .news-date {
+            color: #888;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .news-title {
+            margin: 0 0 10px;
+            font-size: 17px;
+            line-height: 1.6;
+        }
+
+        .news-source {
+            display: inline-block;
+            background: #eee;
+            color: #555;
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        .news-link {
+            display: block;
             text-align: center;
-            padding: 30px 16px;
-            color: #999;
+            background: #333;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        .news-link:active {
+            opacity: 0.7;
+        }
+
+        .status {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+        }
+
+        .error {
+            color: #c00;
+        }
+
+        .updated {
+            margin-top: 12px;
+            text-align: center;
+            color: #888;
             font-size: 12px;
         }
     </style>
@@ -96,43 +127,171 @@
 
 <body>
 
-    <header>
-        <h1>入江亜季 情報まとめ</h1>
-        <p>最新情報をチェック</p>
-    </header>
+    <div class="container">
 
-    <main>
+        <header>
+            <h1>入江亜季 情報まとめ</h1>
+            <p class="description">
+                入江亜季さんに関する最新情報
+            </p>
+        </header>
 
-        <section class="section">
-            <h2>🆕 新着情報</h2>
+        <main>
 
-            <div class="info">
-                <div class="date">2026/08/30</div>
-                <div class="title">現在、情報を収集中です</div>
-                <div class="message">
-                    今後、ここに自動収集した情報が表示されます。
+            <div id="news-list" class="news-list">
+                <div class="status">
+                    ニュースを読み込んでいます...
                 </div>
             </div>
 
-        </section>
+            <div id="updated" class="updated"></div>
 
-        <section class="section">
-            <h2>📚 作品情報</h2>
+        </main>
 
-            <div class="info">
-                <div class="title">作品情報</div>
-                <div class="message">
-                    今後、作品に関する情報を追加します。
-                </div>
-            </div>
+    </div>
 
-        </section>
 
-    </main>
+    <script>
 
-    <footer>
-        入江亜季 情報まとめ
-    </footer>
+        async function loadNews() {
+
+            const newsList = document.getElementById("news-list");
+            const updated = document.getElementById("updated");
+
+            try {
+
+                /*
+                 * GitHub Pages上の
+                 *
+                 * data/news.json
+                 *
+                 * を読み込む
+                 *
+                 * ?timestamp=... を付けることで、
+                 * ブラウザに古いJSONが残るのを防ぐ。
+                 */
+                const response = await fetch(
+                    "data/news.json?timestamp=" + Date.now()
+                );
+
+                if (!response.ok) {
+                    throw new Error(
+                        "news.jsonを読み込めませんでした。"
+                    );
+                }
+
+                const news = await response.json();
+
+                newsList.innerHTML = "";
+
+                if (!Array.isArray(news) || news.length === 0) {
+
+                    newsList.innerHTML = `
+                        <div class="status">
+                            現在ニュースはありません。
+                        </div>
+                    `;
+
+                    return;
+                }
+
+                /*
+                 * 日付の新しい順に並べる
+                 */
+                news.sort(
+                    (a, b) =>
+                        new Date(b.date) - new Date(a.date)
+                );
+
+                /*
+                 * ニュースを表示
+                 */
+                for (const item of news) {
+
+                    const article = document.createElement("article");
+
+                    article.className = "news-item";
+
+                    article.innerHTML = `
+                        <div class="news-date">
+                            ${escapeHtml(item.date)}
+                        </div>
+
+                        <h2 class="news-title">
+                            ${escapeHtml(item.title)}
+                        </h2>
+
+                        <div class="news-source">
+                            ${escapeHtml(item.source)}
+                        </div>
+
+                        <a
+                            class="news-link"
+                            href="${escapeAttribute(item.url)}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            元記事を見る
+                        </a>
+                    `;
+
+                    newsList.appendChild(article);
+                }
+
+                /*
+                 * 最終更新日時
+                 */
+                const now = new Date();
+
+                updated.textContent =
+                    "ページ確認時刻: " +
+                    now.toLocaleString("ja-JP");
+
+            } catch (error) {
+
+                console.error(error);
+
+                newsList.innerHTML = `
+                    <div class="status error">
+                        ニュースの読み込みに失敗しました。
+                    </div>
+                `;
+            }
+        }
+
+
+        /*
+         * HTML特殊文字を安全に表示する
+         */
+        function escapeHtml(value) {
+
+            const div = document.createElement("div");
+
+            div.textContent = value ?? "";
+
+            return div.innerHTML;
+        }
+
+
+        /*
+         * URL属性用の文字列を安全にする
+         */
+        function escapeAttribute(value) {
+
+            return String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/"/g, "&quot;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+        }
+
+
+        /*
+         * ページを開いたときにニュースを取得
+         */
+        loadNews();
+
+    </script>
 
 </body>
 
