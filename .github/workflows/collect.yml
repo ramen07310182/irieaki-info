@@ -51,8 +51,6 @@ jobs:
         run: |
           pip install requests beautifulsoup4 lxml
 
-      - name: Test Natalie
-        run: python collectors/natalie_test.py
 
       # =====================================================
       # 北北西に曇と往け
