@@ -1,3 +1,6 @@
+import time
+from urllib.parse import quote, urlparse, parse_qs, unquote
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -6,14 +9,21 @@ from bs4 import BeautifulSoup
 # 設定
 # ============================================================
 
-URL = "https://natalie.mu/comic/artist/2343"
+GOOGLE_NEWS_RSS_URL = (
+    "https://news.google.com/rss/search?q={}&hl=ja&gl=JP&ceid=JP:ja"
+)
+
+SEARCH_WORDS = [
+    "入江亜季 site:natalie.mu/comic",
+    "北北西に曇と往け site:natalie.mu/comic",
+]
 
 MAX_RETRIES = 3
 
 WAIT_TIMES = [
     10,
     30,
-    60
+    60,
 ]
 
 HEADERS = {
@@ -24,31 +34,55 @@ HEADERS = {
         "Chrome/151.0.0.0 Safari/537.36"
     ),
     "Accept": (
-        "text/html,application/xhtml+xml,"
-        "application/xml;q=0.9,image/avif,"
-        "image/webp,*/*;q=0.8"
+        "application/rss+xml, "
+        "application/xml, "
+        "text/xml, "
+        "text/html;q=0.9, "
+        "*/*;q=0.8"
     ),
     "Accept-Language": "ja,en-US;q=0.9,en;q=0.8",
 }
 
 
 # ============================================================
-# 著者ページ取得
+# Google News RSS取得
 # ============================================================
 
-def get_artist_page():
+def get_rss(search_word):
+
+    encoded_word = quote(
+        search_word
+    )
+
+    url = GOOGLE_NEWS_RSS_URL.format(
+        encoded_word
+    )
+
+    print()
+    print("=" * 60)
+    print("Google News RSSへアクセス")
+    print("=" * 60)
+
+    print(
+        f"検索ワード: {search_word}"
+    )
+
+    print(
+        f"URL: {url}"
+    )
 
     for attempt in range(MAX_RETRIES):
 
+        print()
         print(
-            f"コミックナタリー著者ページへアクセス中..."
+            f"取得中... "
             f"（試行 {attempt + 1}/{MAX_RETRIES}）"
         )
 
         try:
 
             response = requests.get(
-                URL,
+                url,
                 headers=HEADERS,
                 timeout=30
             )
@@ -64,41 +98,11 @@ def get_artist_page():
 
             if response.status_code == 200:
 
-                print()
                 print(
-                    "著者ページの取得に成功しました。"
+                    "RSSの取得に成功しました。"
                 )
 
                 return response
-
-            # ------------------------------------------------
-            # 405
-            # ------------------------------------------------
-
-            if response.status_code == 405:
-
-                print(
-                    "405 Method Not Allowed"
-                )
-
-                if attempt < MAX_RETRIES - 1:
-
-                    wait_time = WAIT_TIMES[attempt]
-
-                    print(
-                        f"{wait_time}秒待って再試行します..."
-                    )
-
-                    import time
-                    time.sleep(wait_time)
-
-                    continue
-
-                print(
-                    "405エラーのため取得を中止します。"
-                )
-
-                return None
 
             # ------------------------------------------------
             # 403
@@ -110,35 +114,38 @@ def get_artist_page():
                     "403 Forbidden"
                 )
 
-                if attempt < MAX_RETRIES - 1:
+            # ------------------------------------------------
+            # 429
+            # ------------------------------------------------
 
-                    wait_time = WAIT_TIMES[attempt]
-
-                    print(
-                        f"{wait_time}秒待って再試行します..."
-                    )
-
-                    import time
-                    time.sleep(wait_time)
-
-                    continue
+            elif response.status_code == 429:
 
                 print(
-                    "403エラーのため取得を中止します。"
+                    "429 Too Many Requests"
                 )
-
-                return None
 
             # ------------------------------------------------
             # その他
             # ------------------------------------------------
 
-            print(
-                f"予期しないHTTPステータス: "
-                f"{response.status_code}"
-            )
+            else:
 
-            return None
+                print(
+                    f"HTTPエラー: "
+                    f"{response.status_code}"
+                )
+
+            if attempt < MAX_RETRIES - 1:
+
+                wait_time = WAIT_TIMES[attempt]
+
+                print(
+                    f"{wait_time}秒待って再試行します..."
+                )
+
+                time.sleep(
+                    wait_time
+                )
 
         except requests.RequestException as e:
 
@@ -154,195 +161,210 @@ def get_artist_page():
                     f"{wait_time}秒待って再試行します..."
                 )
 
-                import time
-                time.sleep(wait_time)
-
-                continue
-
-            return None
+                time.sleep(
+                    wait_time
+                )
 
     return None
 
 
 # ============================================================
-# ページ内容確認
+# Google News RSSの記事解析
 # ============================================================
 
-def check_page(response):
+def parse_rss(response):
 
     soup = BeautifulSoup(
-        response.text,
-        "html.parser"
+        response.content,
+        "xml"
     )
 
-    print()
-    print("=" * 60)
-    print("ページ内容を確認します")
-    print("=" * 60)
-
-    # --------------------------------------------------------
-    # title
-    # --------------------------------------------------------
-
-    title = soup.find("title")
-
-    if title:
-
-        print()
-        print(
-            "ページタイトル:"
-        )
-
-        print(
-            title.get_text(
-                " ",
-                strip=True
-            )
-        )
-
-    # --------------------------------------------------------
-    # h1
-    # --------------------------------------------------------
-
-    h1 = soup.find("h1")
-
-    if h1:
-
-        print()
-        print(
-            "h1:"
-        )
-
-        print(
-            h1.get_text(
-                " ",
-                strip=True
-            )
-        )
-
-    # --------------------------------------------------------
-    # 「入江亜季のニュース」を探す
-    # --------------------------------------------------------
-
-    page_text = soup.get_text(
-        " ",
-        strip=True
+    items = soup.find_all(
+        "item"
     )
-
-    if "入江亜季のニュース" in page_text:
-
-        print()
-        print(
-            "「入江亜季のニュース」を確認できました。"
-        )
-
-    else:
-
-        print()
-        print(
-            "「入江亜季のニュース」が"
-            "見つかりませんでした。"
-        )
-
-    # --------------------------------------------------------
-    # ページサイズ
-    # --------------------------------------------------------
 
     print()
     print(
-        f"取得したHTMLサイズ: "
-        f"{len(response.text):,} bytes"
+        f"RSS内の記事数: {len(items)}件"
     )
 
-    # --------------------------------------------------------
-    # ニュース記事URLを確認
-    # --------------------------------------------------------
+    results = []
 
-    news_links = []
+    for item in items:
 
-    for link in soup.find_all(
-        "a",
-        href=True
-    ):
+        title_element = item.find(
+            "title"
+        )
 
-        href = link["href"]
+        link_element = item.find(
+            "link"
+        )
 
-        if "/comic/news/" not in href:
+        pub_date_element = item.find(
+            "pubDate"
+        )
+
+        source_element = item.find(
+            "source"
+        )
+
+        if title_element is None:
             continue
 
-        text = link.get_text(
-            " ",
+        title = title_element.get_text(
             strip=True
         )
 
-        if not text:
-            continue
+        link = ""
 
-        news_links.append(
-            (
-                text,
-                href
+        if link_element:
+
+            link = link_element.get_text(
+                strip=True
             )
-        )
 
-    # URL重複削除
+        pub_date = ""
 
-    unique_links = []
+        if pub_date_element:
 
-    seen_urls = set()
-
-    for text, href in news_links:
-
-        if href in seen_urls:
-            continue
-
-        seen_urls.add(href)
-
-        unique_links.append(
-            (
-                text,
-                href
+            pub_date = pub_date_element.get_text(
+                strip=True
             )
-        )
 
-    print()
-    print(
-        f"著者ページ内で確認できた"
-        f"ニュースURL: {len(unique_links)}件"
+        source = ""
+
+        if source_element:
+
+            source = source_element.get_text(
+                strip=True
+            )
+
+        results.append({
+            "title": title,
+            "link": link,
+            "pub_date": pub_date,
+            "source": source,
+        })
+
+    return results
+
+
+# ============================================================
+# URL確認
+# ============================================================
+
+def is_natalie_url(url):
+
+    if not url:
+        return False
+
+    parsed = urlparse(
+        url
     )
 
-    # --------------------------------------------------------
-    # 最初の10件だけ表示
-    # --------------------------------------------------------
+    hostname = (
+        parsed.hostname or ""
+    ).lower()
 
-    if unique_links:
+    return (
+        hostname == "natalie.mu"
+        or hostname.endswith(
+            ".natalie.mu"
+        )
+    )
+
+
+# ============================================================
+# Google Newsの記事URLを確認
+# ============================================================
+
+def show_results(
+    search_word,
+    results
+):
+
+    print()
+    print("=" * 60)
+    print(
+        f"検索結果: {search_word}"
+    )
+    print("=" * 60)
+
+    if not results:
+
+        print(
+            "記事が見つかりませんでした。"
+        )
+
+        return
+
+    natalie_count = 0
+
+    for index, item in enumerate(
+        results,
+        start=1
+    ):
+
+        title = item["title"]
+        link = item["link"]
+        pub_date = item["pub_date"]
+        source = item["source"]
+
+        natalie = is_natalie_url(
+            link
+        )
+
+        if natalie:
+
+            natalie_count += 1
 
         print()
         print(
-            "【ニュースURL確認】"
+            f"[{index}]"
         )
 
-        print()
+        print(
+            f"タイトル: {title}"
+        )
 
-        for index, (text, href) in enumerate(
-            unique_links[:10],
-            start=1
-        ):
+        print(
+            f"公開日時: {pub_date}"
+        )
+
+        print(
+            f"配信元: {source}"
+        )
+
+        print(
+            f"URL: {link}"
+        )
+
+        if natalie:
 
             print(
-                f"{index}. {text}"
+                "★ コミックナタリーの記事です"
             )
 
+        else:
+
             print(
-                f"   {href}"
+                "→ コミックナタリー以外"
             )
 
     print()
-    print("=" * 60)
     print(
-        "著者ページの確認が完了しました。"
+        "-" * 60
     )
-    print("=" * 60)
+
+    print(
+        f"Google News取得件数: "
+        f"{len(results)}件"
+    )
+
+    print(
+        f"コミックナタリー判定: "
+        f"{natalie_count}件"
+    )
 
 
 # ============================================================
@@ -352,51 +374,98 @@ def check_page(response):
 if __name__ == "__main__":
 
     print(
-        "コミックナタリー著者ページ"
-        "取得テストを開始します。"
+        "コミックナタリー"
+        "Google News RSS取得テスト"
     )
 
     print()
 
     print(
-        f"取得URL:"
-    )
-
-    print(
-        URL
+        "今回はnews.jsonには保存しません。"
     )
 
     print()
 
-    try:
+    success_count = 0
 
-        response = get_artist_page()
+    for search_word in SEARCH_WORDS:
+
+        response = get_rss(
+            search_word
+        )
 
         if response is None:
 
             print()
             print(
-                "著者ページを取得できませんでした。"
+                f"取得失敗: {search_word}"
             )
 
-            raise SystemExit(1)
+            continue
 
-        check_page(response)
+        try:
+
+            results = parse_rss(
+                response
+            )
+
+            show_results(
+                search_word,
+                results
+            )
+
+            success_count += 1
+
+        except Exception as e:
+
+            print()
+            print(
+                "RSSの解析中に"
+                "エラーが発生しました。"
+            )
+
+            print(
+                f"エラー: {e}"
+            )
+
+        # ----------------------------------------------------
+        # 検索ワード間隔
+        # ----------------------------------------------------
+
+        time.sleep(
+            3
+        )
+
+    print()
+    print("=" * 60)
+    print("テスト結果")
+    print("=" * 60)
+
+    print(
+        f"成功した検索: "
+        f"{success_count}/{len(SEARCH_WORDS)}"
+    )
+
+    if success_count == len(
+        SEARCH_WORDS
+    ):
 
         print()
         print(
-            "テスト成功"
+            "Google News RSSの"
+            "取得テストに成功しました。"
         )
 
-    except Exception as e:
+        print(
+            "次の段階で、コミックナタリーの記事だけを"
+            "news.jsonへ保存する処理を追加できます。"
+        )
+
+    else:
 
         print()
         print(
-            "テスト中にエラーが発生しました。"
-        )
-
-        print(
-            f"エラー: {e}"
+            "一部または全部の検索に失敗しました。"
         )
 
         raise SystemExit(1)
