@@ -53,12 +53,65 @@ jobs:
 
 
       # =====================================================
-      # 実行前のnews.jsonを保存
+      # 更新前のnews.jsonをバックアップ
       # =====================================================
 
-      - name: 更新前のnews.jsonを保存
+      - name: news.jsonをバックアップ
         run: |
+
+          # バックアップフォルダを作成
+          mkdir -p data/backup
+
+          # 現在日時を取得
+          BACKUP_NAME="news_$(date '+%Y-%m-%d_%H-%M-%S').json"
+
+          # news.jsonをバックアップ
+          cp data/news.json "data/backup/${BACKUP_NAME}"
+
+          # 新規記事判定用にもコピー
           cp data/news.json /tmp/news_before.json
+
+          echo "バックアップを作成しました:"
+          echo "data/backup/${BACKUP_NAME}"
+
+
+      # =====================================================
+      # 古いバックアップを削除
+      #
+      # 最新30個だけ残す
+      # =====================================================
+
+      - name: 古いバックアップを削除
+        run: |
+
+          echo "バックアップを整理します..."
+
+          cd data/backup
+
+          # バックアップが存在する場合のみ処理
+          if ls news_*.json >/dev/null 2>&1; then
+
+            # 新しい順に並べる
+            BACKUPS=$(ls -1t news_*.json)
+
+            # 30個を超えた分を削除
+            echo "$BACKUPS" | tail -n +31 | while read FILE
+            do
+              if [ -n "$FILE" ]; then
+                echo "削除: $FILE"
+                rm -f "$FILE"
+              fi
+            done
+
+          else
+
+            echo "バックアップファイルはありません。"
+
+          fi
+
+          echo
+          echo "現在のバックアップ:"
+          ls -1t news_*.json 2>/dev/null || true
 
 
       # =====================================================
@@ -113,17 +166,40 @@ jobs:
       - name: 新規記事を確認
         id: check_news
         run: |
+
           python - <<'PY'
+
           import json
 
           before_path = "/tmp/news_before.json"
           after_path = "data/news.json"
 
-          with open(before_path, "r", encoding="utf-8") as f:
+
+          # =================================================
+          # news.json読み込み
+          # =================================================
+
+          with open(
+              before_path,
+              "r",
+              encoding="utf-8"
+          ) as f:
+
               before = json.load(f)
 
-          with open(after_path, "r", encoding="utf-8") as f:
+
+          with open(
+              after_path,
+              "r",
+              encoding="utf-8"
+          ) as f:
+
               after = json.load(f)
+
+
+          # =================================================
+          # 更新前のURL一覧
+          # =================================================
 
           before_urls = {
               item.get("url")
@@ -131,18 +207,46 @@ jobs:
               if item.get("url")
           }
 
+
+          # =================================================
+          # 新規記事を抽出
+          # =================================================
+
           new_items = [
+
               item
+
               for item in after
+
               if item.get("url")
               and item.get("url") not in before_urls
+
           ]
 
-          print(f"更新前: {len(before)}件")
-          print(f"更新後: {len(after)}件")
-          print(f"新規記事: {len(new_items)}件")
 
-          with open("/tmp/new_items.json", "w", encoding="utf-8") as f:
+          print(
+              f"更新前: {len(before)}件"
+          )
+
+          print(
+              f"更新後: {len(after)}件"
+          )
+
+          print(
+              f"新規記事: {len(new_items)}件"
+          )
+
+
+          # =================================================
+          # 新規記事JSON
+          # =================================================
+
+          with open(
+              "/tmp/new_items.json",
+              "w",
+              encoding="utf-8"
+          ) as f:
+
               json.dump(
                   new_items,
                   f,
@@ -150,7 +254,13 @@ jobs:
                   indent=2
               )
 
+
+          # =================================================
+          # 新規記事がある場合
+          # =================================================
+
           if new_items:
+
               with open(
                   "/tmp/notification.txt",
                   "w",
@@ -161,6 +271,7 @@ jobs:
                       f"入江亜季の新着情報が "
                       f"{len(new_items)}件あります。\n\n"
                   )
+
 
                   for item in new_items:
 
@@ -176,65 +287,111 @@ jobs:
                           f"{item.get('url', '')}\n\n"
                       )
 
-              print("新規記事あり")
-              print("通知を送信します")
+
+              print(
+                  "新規記事あり"
+              )
+
+              print(
+                  "通知を送信します"
+              )
+
 
               with open(
                   "/tmp/new_flag",
                   "w"
               ) as f:
+
                   f.write("true")
+
+
+          # =================================================
+          # 新規記事がない場合
+          # =================================================
 
           else:
 
-              print("新規記事なし")
-              print("通知は送信しません")
+              print(
+                  "新規記事なし"
+              )
+
+              print(
+                  "通知は送信しません"
+              )
+
 
               with open(
                   "/tmp/new_flag",
                   "w"
               ) as f:
+
                   f.write("false")
+
           PY
 
 
       # =====================================================
-      # news.jsonをGitHubへ保存
+      # news.json・バックアップをGitHubへ保存
       # =====================================================
 
-      - name: news.jsonをコミット
+      - name: news.jsonとバックアップをコミット
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          git config user.name "github-actions[bot]"
+
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+
+          # news.json
           git add data/news.json
 
-          git diff --cached --quiet || git commit -m "自動更新: ニュース情報を収集"
+          # バックアップ
+          git add data/backup/
 
+
+          # 変更がある場合だけコミット
+          git diff --cached --quiet || \
+            git commit -m "自動更新: ニュース情報を収集"
+
+
+          # GitHubへ反映
           git push
 
 
       # =====================================================
-      # iPhoneへ通知
+      # iPhoneへ新着通知
       # =====================================================
 
       - name: iPhoneへ新着通知
         if: success()
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+
         run: |
 
+          # 通知フラグが存在しない場合
           if [ ! -f /tmp/new_flag ]; then
+
             echo "通知フラグがありません。"
+
             exit 0
+
           fi
 
+
+          # 新規記事がない場合
           if [ "$(cat /tmp/new_flag)" != "true" ]; then
+
             echo "新規記事がないため通知しません。"
+
             exit 0
+
           fi
+
 
           echo "iPhoneへ通知します。"
+
 
           curl \
             -X POST \
