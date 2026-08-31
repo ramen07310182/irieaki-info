@@ -53,6 +53,15 @@ jobs:
 
 
       # =====================================================
+      # 実行前のnews.jsonを保存
+      # =====================================================
+
+      - name: 更新前のnews.jsonを保存
+        run: |
+          cp data/news.json /tmp/news_before.json
+
+
+      # =====================================================
       # 北北西に曇と往け
       # =====================================================
 
@@ -98,6 +107,98 @@ jobs:
 
 
       # =====================================================
+      # 新規記事があるか確認
+      # =====================================================
+
+      - name: 新規記事を確認
+        id: check_news
+        run: |
+          python - <<'PY'
+          import json
+
+          before_path = "/tmp/news_before.json"
+          after_path = "data/news.json"
+
+          with open(before_path, "r", encoding="utf-8") as f:
+              before = json.load(f)
+
+          with open(after_path, "r", encoding="utf-8") as f:
+              after = json.load(f)
+
+          before_urls = {
+              item.get("url")
+              for item in before
+              if item.get("url")
+          }
+
+          new_items = [
+              item
+              for item in after
+              if item.get("url")
+              and item.get("url") not in before_urls
+          ]
+
+          print(f"更新前: {len(before)}件")
+          print(f"更新後: {len(after)}件")
+          print(f"新規記事: {len(new_items)}件")
+
+          with open("/tmp/new_items.json", "w", encoding="utf-8") as f:
+              json.dump(
+                  new_items,
+                  f,
+                  ensure_ascii=False,
+                  indent=2
+              )
+
+          if new_items:
+              with open(
+                  "/tmp/notification.txt",
+                  "w",
+                  encoding="utf-8"
+              ) as f:
+
+                  f.write(
+                      f"入江亜季の新着情報が "
+                      f"{len(new_items)}件あります。\n\n"
+                  )
+
+                  for item in new_items:
+
+                      f.write(
+                          f"【{item.get('source', '')}】\n"
+                      )
+
+                      f.write(
+                          f"{item.get('title', '')}\n"
+                      )
+
+                      f.write(
+                          f"{item.get('url', '')}\n\n"
+                      )
+
+              print("新規記事あり")
+              print("通知を送信します")
+
+              with open(
+                  "/tmp/new_flag",
+                  "w"
+              ) as f:
+                  f.write("true")
+
+          else:
+
+              print("新規記事なし")
+              print("通知は送信しません")
+
+              with open(
+                  "/tmp/new_flag",
+                  "w"
+              ) as f:
+                  f.write("false")
+          PY
+
+
+      # =====================================================
       # news.jsonをGitHubへ保存
       # =====================================================
 
@@ -111,3 +212,34 @@ jobs:
           git diff --cached --quiet || git commit -m "自動更新: ニュース情報を収集"
 
           git push
+
+
+      # =====================================================
+      # iPhoneへ通知
+      # =====================================================
+
+      - name: iPhoneへ新着通知
+        if: success()
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: |
+
+          if [ ! -f /tmp/new_flag ]; then
+            echo "通知フラグがありません。"
+            exit 0
+          fi
+
+          if [ "$(cat /tmp/new_flag)" != "true" ]; then
+            echo "新規記事がないため通知しません。"
+            exit 0
+          fi
+
+          echo "iPhoneへ通知します。"
+
+          curl \
+            -X POST \
+            -H "Title: 入江亜季 新着情報" \
+            -H "Priority: high" \
+            -H "Tags: newspaper" \
+            --data-binary @/tmp/notification.txt \
+            "https://ntfy.sh/${NTFY_TOPIC}"
